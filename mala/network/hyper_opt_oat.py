@@ -185,7 +185,7 @@ class HyperOptOAT(HyperOptBase):
         runs = [np.prod(tt) for tt in itertools.combinations(
             self.factor_levels, self.strength)]
 
-        N = np.lcm.reduce(runs)*np.lcm.reduce(self.factor_levels)
+        N= np.lcm.reduce(runs)
         return int(N)
 
     @property
@@ -197,3 +197,4 @@ class HyperOptOAT(HyperOptBase):
         """
         dx = np.diff(self.factor_levels)
         return np.all(dx <= 0) or np.all(dx >= 0)
+        
