@@ -204,7 +204,11 @@ class FeedForwardNet(BaseNetwork):
             inputs = layer(inputs)
         return inputs
 
-
+class LSTM(BaseNetwork):
+    def __init__(self, params):
+        super(LSTM, self).__init__(params)
+        #to do lstm network implementation
+        
 class TransformerNet(BaseNetwork):
     def __init__(self, params):
         super(TransformerNet, self).__init__(params)
@@ -242,7 +246,7 @@ class TransformerNet(BaseNetwork):
         self.decoder.weight.data.uniform_(-initrange, initrange)
 
 
-    def forward(self, x, hidden = 0):
+    def forward(self, x):
 
         if self.src_mask is None or self.src_mask.size(0) != x.size(0):
             device = x.device
@@ -254,7 +258,7 @@ class TransformerNet(BaseNetwork):
         output = self.transformer_encoder(x, self.src_mask)
         output = self.decoder(output)
 
-        return (output, hidden)
+        return output
 
 class PositionalEncoding(nn.Module):
 
@@ -279,17 +283,18 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x)
 
 
-class Network:
-    def __init__(self, params:Parameters):
-
-        self.model: BaseNetwork= None 
-        if self.params.nn_type == "feed-forward":
-            self.model= FeedForwardNet(params)
-        
-        elif self.params.nn_type == "transformer":
-            self.model= TransformerNet(params)
-        
-        if self.model is not None:
-            return self.model
-        else:
-            raise Exception("Unsupported network architecture.")
+def Network(params:Parameters):
+    model: BaseNetwork= None 
+    if params.network.nn_type == "feed-forward":
+        model= FeedForwardNet(params)
+    
+    elif params.network.nn_type == "transformer":
+        model= TransformerNet(params)
+    
+    elif params.network.nn_type == "lstm":
+        model= LSTM(params)
+    
+    if model is not None:
+        return model
+    else:
+        raise Exception("Unsupported network architecture.")
