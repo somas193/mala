@@ -77,6 +77,7 @@ class ParametersNetwork(ParametersBase):
         super(ParametersNetwork, self).__init__()
         self.nn_type = "feed-forward"
         self.layer_sizes = [10, 10, 10]
+        self.num_hidden_layers = None
         self.layer_activations = ["Sigmoid"]
         self.loss_function_type = "mse"
 

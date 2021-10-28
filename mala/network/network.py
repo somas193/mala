@@ -1,7 +1,11 @@
 """Neural network for MALA."""
+from abc import abstractmethod
+import numpy as np 
 import torch
 import torch.nn as nn
 import torch.nn.functional as functional
+
+from mala.common.parameters import Parameters
 try:
     import horovod.torch as hvd
 except ModuleNotFoundError:
@@ -9,7 +13,8 @@ except ModuleNotFoundError:
     pass
 
 
-class Network(nn.Module):
+
+class BaseNetwork(nn.Module):
     """Central network class for this framework, based on pytorch.nn.Module.
 
     Parameters
@@ -30,7 +35,7 @@ class Network(nn.Module):
             torch.cuda.manual_seed(params.manual_seed)
 
         # initialize the parent class
-        super(Network, self).__init__()
+        super(BaseNetwork, self).__init__()
 
         # Mappings for parsing of the activation layers.
         self.activation_mappings = {
@@ -42,12 +47,6 @@ class Network(nn.Module):
 
         # initialize the layers
         self.number_of_layers = len(self.params.layer_sizes) - 1
-        self.layers = nn.ModuleList()
-
-        if self.params.nn_type == "feed-forward":
-            self.__initialize_as_feedforward()
-        else:
-            raise Exception("Unsupported network architecture.")
 
         # initialize the loss function
         if self.params.loss_function_type == "mse":
@@ -60,57 +59,9 @@ class Network(nn.Module):
         if params.use_gpu:
             self.to('cuda')
 
-    def __initialize_as_feedforward(self):
-        """Initialize this network as a feed-forward network."""
-        # Check if multiple types of activations were selected or only one
-        # was passed to be used in the entire network.#
-        # If multiple layers have been passed, their size needs to be correct.
-
-        use_only_one_activation_type = False
-        if len(self.params.layer_activations) == 1:
-            use_only_one_activation_type = True
-        elif len(self.params.layer_activations) < self.number_of_layers:
-            raise Exception("Not enough activation layers provided.")
-        elif len(self.params.layer_activations) > self.number_of_layers:
-            raise Exception("Too many activation layers provided.")
-
-        # Add the layers.
-        # As this is a feedforward layer we always add linear layers, and then
-        # an activation function
-        for i in range(0, self.number_of_layers):
-            self.layers.append((nn.Linear(self.params.layer_sizes[i],
-                                          self.params.layer_sizes[i + 1])))
-            try:
-                if use_only_one_activation_type:
-                    self.layers.append(self.activation_mappings[self.params.
-                                       layer_activations[0]]())
-                else:
-                    self.layers.append(self.activation_mappings[self.params.
-                                       layer_activations[i]]())
-            except KeyError:
-                raise Exception("Invalid activation type seleceted.")
-
+    @abstractmethod
     def forward(self, inputs):
-        """
-        Perform a forward pass through the network.
-
-        Parameters
-        ----------
-        inputs : torch.Tensor
-            Input array for which the forward pass is to be performed.
-
-        Returns
-        -------
-        predicted_array : torch.Tensor
-            Predicted outputs of array.
-        """
-        # Forward propagate data.
-        if self.params.nn_type == "feed-forward":
-            for layer in self.layers:
-                inputs = layer(inputs)
-            return inputs
-        else:
-            raise Exception("Unsupported network architecture.")
+        pass
 
     def do_prediction(self, array):
         """
@@ -202,3 +153,143 @@ class Network(nn.Module):
         loaded_network.load_state_dict(torch.load(path_to_file))
         loaded_network.eval()
         return loaded_network
+
+class FeedForwardNet(BaseNetwork):
+    """Initialize this network as a feed-forward network."""
+        # Check if multiple types of activations were selected or only one
+        # was passed to be used in the entire network.#
+        # If multiple layers have been passed, their size needs to be correct.
+
+    def __init__(self, params):
+        super(FeedForwardNet, self).__init__(params)
+
+        self.layers = nn.ModuleList()
+
+        if len(self.params.layer_activations) == 1:
+            self.params.layer_activations *= self.number_of_layers
+
+        if len(self.params.layer_activations) < self.number_of_layers:
+            raise Exception("Not enough activation layers provided.")
+        elif len(self.params.layer_activations) > self.number_of_layers:
+            raise Exception("Too many activation layers provided.")
+
+        # Add the layers.
+        # As this is a feedforward layer we always add linear layers, and then
+        # an activation function
+        for i in range(0, self.number_of_layers):
+            self.layers.append((nn.Linear(self.params.layer_sizes[i],
+                                          self.params.layer_sizes[i + 1])))
+            try:
+                self.layers.append(self.activation_mappings[self.params.
+                                       layer_activations[i]]())
+            except KeyError:
+                raise Exception("Invalid activation type seleceted.")
+
+    def forward(self, inputs):
+        """
+        Perform a forward pass through the network.
+
+        Parameters
+        ----------
+        inputs : torch.Tensor
+            Input array for which the forward pass is to be performed.
+
+        Returns
+        -------
+        predicted_array : torch.Tensor
+            Predicted outputs of array.
+        """
+        # Forward propagate data.
+        for layer in self.layers:
+            inputs = layer(inputs)
+        return inputs
+
+
+class TransformerNet(BaseNetwork):
+    def __init__(self, params):
+        super(TransformerNet, self).__init__(params)
+
+        self.dropout = .2
+
+        # must be divisor of fp_length
+        self.num_heads = 7
+
+    #        input/hidden equal lengths
+    #        self.num_hidden = 91
+    #        self.num_tokens = 400
+
+        self.src_mask = None
+        self.pos_encoder = PositionalEncoding(self.params.layer_sizes[0], self.dropout)
+
+        encoder_layers = nn.TransformerEncoderLayer(self.params.layer_sizes[0], self.num_heads, self.params.layer_sizes[0], self.dropout)
+        self.transformer_encoder = nn.TransformerEncoder(encoder_layers, self.params.num_hidden_layers)
+    #        self.encoder = nn.Embedding(self.num_tokens, self.params.layer_sizes[0])
+
+        self.decoder = nn.Linear(self.params.layer_sizes[0], self.params.layer_sizes[-1])
+
+        self.init_weights()
+        
+    def generate_square_subsequent_mask(self, size):
+        mask = (torch.triu(torch.ones(size, size)) == 1).transpose(0, 1)
+        mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
+
+        return mask
+
+    def init_weights(self):
+        initrange = 0.1
+    #        self.encoder.weight.data.uniform_(-initrange, initrange)
+        self.decoder.bias.data.zero_()
+        self.decoder.weight.data.uniform_(-initrange, initrange)
+
+
+    def forward(self, x, hidden = 0):
+
+        if self.src_mask is None or self.src_mask.size(0) != x.size(0):
+            device = x.device
+            mask = self.generate_square_subsequent_mask(x.size(0)).to(device)
+            self.src_mask = mask
+
+    #        x = self.encoder(x) * math.sqrt(self.params.layer_sizes[0])
+        x = self.pos_encoder(x)
+        output = self.transformer_encoder(x, self.src_mask)
+        output = self.decoder(output)
+
+        return (output, hidden)
+
+class PositionalEncoding(nn.Module):
+
+    def __init__(self, d_model, dropout=0.1, max_len=400):
+        super(PositionalEncoding, self).__init__()
+        self.dropout = nn.Dropout(p=dropout)
+
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+        
+        # Need to develop better form here.
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-np.log(10000.0) / d_model))
+        div_term2 = torch.exp(torch.arange(0, d_model - 1 , 2).float() * (-np.log(10000.0) / d_model))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term2)
+        
+        pe = pe.unsqueeze(0).transpose(0, 1)
+        self.register_buffer('pe', pe)
+
+    def forward(self, x):
+        x = x + self.pe[:x.size(0), :]
+        return self.dropout(x)
+
+
+class Network:
+    def __init__(self, params:Parameters):
+
+        self.model: BaseNetwork= None 
+        if self.params.nn_type == "feed-forward":
+            self.model= FeedForwardNet(params)
+        
+        elif self.params.nn_type == "transformer":
+            self.model= TransformerNet(params)
+        
+        if self.model is not None:
+            return self.model
+        else:
+            raise Exception("Unsupported network architecture.")
