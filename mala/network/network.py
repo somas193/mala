@@ -207,7 +207,77 @@ class FeedForwardNet(BaseNetwork):
 class LSTM(BaseNetwork):
     def __init__(self, params):
         super(LSTM, self).__init__(params)
-        #to do lstm network implementation
+        self.layers = nn.ModuleList()
+        self.hidden_dim = self.params.layer_sizes[-1]
+
+        # First Layer
+        self.first_layer = nn.Linear(self.params.layer_sizes[0], self.params.layer_sizes[1])
+        # Last Layer
+        # self.last_layer = nn.Linear(self.params.layer_sizes[-2], self.params.layer_sizes[-1])
+
+        # Big Spiker
+        self.fc_width_lstm_in = nn.Linear(self.params.layer_sizes[-2], self.params.layer_sizes[-1] * self.params.stacked_layers_count)
+        
+        # size of lstm based on bidirectional or not: https://en.wikipedia.org/wiki/Bidirectional_recurrent_neural_networks
+        if (self.params.bidirection):
+            self.ldos_lstm = nn.LSTM(self.params.layer_sizes[1], 
+                                        int(self.hidden_dim / 2), 
+                                        self.params.stacked_layers_count, 
+                                        batch_first=True, 
+                                        bidirectional=True)
+        else:
+            
+            self.ldos_lstm = nn.LSTM(self.params.layer_sizes[1],
+                                        self.hidden_dim, 
+                                        self.params.stacked_layers_count, 
+                                        batch_first=True)
+
+    # Apply Network
+    def forward(self, x, hidden = 0):
+
+        self.batch_size = x.shape[0]
+
+        if (self.params.hidden_state):
+            hidden = (hidden[0].fill_(0.0), hidden[1].fill_(0.0))
+
+        x = self.activation_mappings(self.first_layer(x))
+
+        x = self.activation(self.fc_width_lstm_in(x))
+ 
+
+        if (self.params.bidirection):
+            x, hidden = self.ldos_lstm(x.view(self.batch_size, 
+                                              self.params.stacked_layers_count, 
+                                              self.self.params.layer_sizes[1]), 
+                                       hidden)
+        else:
+            x, hidden = self.ldos_lstm(x.view(self.batch_size, 
+                                              self.params.stacked_layers_count, 
+                                              self.self.params.layer_sizes[1]), 
+                                       hidden)
+
+        x = x[:, -1, :]
+        return (self.final_activation(x), hidden)
+
+    # Initialize hidden and cell states
+    def init_hidden_train(self):
+                
+        if (self.params.no_bidirection):
+            h0 = torch.empty(self.params.stacked_layers_count, 
+                             self.params.mini_batch_size, 
+                             self.hidden_dim)
+            c0 = torch.empty(self.params.stacked_layers_count, 
+                             self.params.mini_batch_size, 
+                             self.hidden_dim)
+        else:
+            h0 = torch.empty(self.params.stacked_layers_count * 2, 
+                             self.params.mini_batch_size, 
+                             self.hidden_dim // 2)
+            c0 = torch.empty(self.params.stacked_layers_count * 2, 
+                             self.params.mini_batch_size, 
+                             self.hidden_dim // 2)
+
+
         
 class TransformerNet(BaseNetwork):
     def __init__(self, params):
@@ -293,6 +363,10 @@ def Network(params:Parameters):
     
     elif params.network.nn_type == "lstm":
         model= LSTM(params)
+
+    elif params.network.nn_type == "gru":
+        model= GRU(params)
+    
     
     if model is not None:
         return model
