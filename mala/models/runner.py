@@ -1,5 +1,6 @@
 """Runner class for running models."""
 import torch
+import gpytorch
 from mala.common.printout import printout
 from mala.common.parameters import ParametersRunning
 from mala.models.gaussian_processes import GaussianProcesses
@@ -117,14 +118,17 @@ class Runner:
                     inverse_transform(self.model(inputs).
                                       to('cpu'), as_numpy=True)
         else:
-            predicted_outputs = \
-                self.data.output_data_scaler.\
-                inverse_transform(self.model.likelihood(
-                                  self.model(data_set[snapshot_number *
-                                        self.data.grid_size:
-                                        (snapshot_number + 1) *
-                                        self.data.grid_size][0])).mean.to('cpu'),
-                                  as_numpy=True)
+            with torch.no_grad(), gpytorch.settings.fast_pred_var():
+                inputs = \
+                    data_set[snapshot_number * self.data.grid_size: (snapshot_number + 1) * self.data.grid_size][0]
+                if self.parameters_full.use_gpu:
+                    inputs = inputs.to('cuda')
+                    
+                predicted_outputs = \
+                    self.data.output_data_scaler.\
+                    inverse_transform(self.model.likelihood(
+                                    self.model(inputs)).mean.to('cpu'),
+                                    as_numpy=True)
             predicted_outputs = predicted_outputs.transpose(1, 0)
             actual_outputs = actual_outputs.transpose(1, 0)
 

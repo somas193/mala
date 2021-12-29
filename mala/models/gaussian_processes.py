@@ -43,6 +43,8 @@ class GaussianProcesses(gpytorch.models.ExactGP):
             self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel())
         if self.params.kernel == "linear":
             self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.LinearKernel())
+        if self.params.kernel == "rbf+linear":
+            self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel() + gpytorch.kernels.LinearKernel())
 
         if self.covar_module is None:
             raise Exception("Invalid kernel selectded.")
@@ -54,6 +56,12 @@ class GaussianProcesses(gpytorch.models.ExactGP):
 
         if self.multivariate_distribution is None:
             raise Exception("Invalid multivariate distribution selected.")
+            
+        # Once everything is done, we can move the Network on the target
+        # device.
+        if params.use_gpu:
+            self.likelihood.to('cuda')
+            self.to('cuda')
 
     def forward(self, x):
         mean_x = self.mean_module(x)
@@ -61,7 +69,7 @@ class GaussianProcesses(gpytorch.models.ExactGP):
         return self.multivariate_distribution(mean_x, covar_x)
 
     def calculate_loss(self, output, target):
-        return -gpytorch.mlls.ExactMarginalLogLikelihood(self.likelihood, self)(output, target).sum()
+        return -gpytorch.mlls.ExactMarginalLogLikelihood(self.likelihood, self)(output, target)
 
     # TODO: implement this.
     def load_from_file(cls, params, path_to_file):
@@ -72,7 +80,7 @@ class GaussianProcesses(gpytorch.models.ExactGP):
         pass
 
     def train(self, mode=True):
-        self.likelihood.train()
+        self.likelihood.train(mode=mode)
         return super(GaussianProcesses, self).train(mode=mode)
 
     def eval(self):
