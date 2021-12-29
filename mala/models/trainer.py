@@ -6,6 +6,7 @@ from mala.models.gaussian_processes import GaussianProcesses
 import os
 import numpy as np
 import torch
+import gpytorch
 from torch import optim
 from torch.utils.data import DataLoader
 from mala.common.parameters import printout
@@ -490,13 +491,23 @@ class Trainer(Runner):
         if validation_type == "ldos":
             validation_loss = []
             with torch.no_grad():
-                for x, y in data_loader:
-                    if self.parameters_full.use_gpu:
-                        x = x.to('cuda')
-                        y = y.to('cuda')
-                    prediction = model(x)
-                    validation_loss.append(model.calculate_loss(prediction, y)
-                                           .item())
+                if not self.gaussian_processes_used:
+                    for x, y in data_loader:
+                        if self.parameters_full.use_gpu:
+                            x = x.to('cuda')
+                            y = y.to('cuda')
+                        prediction = model(x)
+                        validation_loss.append(model.calculate_loss(prediction, y)
+                                               .item())
+                else:
+                    with gpytorch.settings.fast_pred_var():
+                        for x, y in data_loader:
+                            if self.parameters_full.use_gpu:
+                                x = x.to('cuda')
+                                y = y.to('cuda')
+                            prediction = model(x)
+                            validation_loss.append(model.calculate_loss(prediction, y)
+                                                   .item())
 
             return np.mean(validation_loss)
         elif validation_type == "band_energy":
