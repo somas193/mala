@@ -1,7 +1,7 @@
 import mala
 from mala import printout
 from data_repo_path import get_data_repo_path
-data_path = get_data_repo_path()+"Al36/"
+data_path = get_data_repo_path()+"Be2/densities_gp/"
 
 """
 ex04_hyperparameter_optimization.py: Shows how a hyperparameter 
@@ -17,6 +17,7 @@ on the most universal one - optuna.
 # contains subclasses.
 ####################
 test_parameters = mala.Parameters()
+test_parameters.use_gpu = False
 # Currently, the splitting in training, validation and test set are
 # done on a "by snapshot" basis. Specify how this is
 # done by providing a list containing entries of the form

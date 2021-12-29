@@ -11,6 +11,7 @@ parameters (it is the equivalent to ex01 in that regard.)
 """
 
 params = mala.Parameters()
+params.use_gpu = False
 
 # Specify the data scaling.
 params.data.input_rescaling_type = "feature-wise-standard"
@@ -18,9 +19,11 @@ params.data.output_rescaling_type = "normal"
 
 # Specify the used activation function.
 params.model.loss_function_type = "gaussian_likelihood"
+params.model.kernel = "linear"
+#params.model.kernel = "rbf+linear"
 
 # Specify the training parameters.
-params.running.max_number_epochs = 20
+params.running.max_number_epochs = 1
 
 # This should be 1, and MALA will set it automatically to, if we don't.
 params.running.mini_batch_size = 40
@@ -54,9 +57,27 @@ printout("Read data: DONE.")
 # Gaussian Processes do not have to be trained in order
 # to captue the trainint data.
 ####################
-params.model.kernel = "linear"
 model = mala.GaussianProcesses(params, data_handler)
+test_trainer = mala.Trainer(params, model, data_handler)
+printout("Network setup: DONE.")
 
+####################
+# TRAINING
+# Train the models.
+####################
+'''
+printout("Starting training.")
+test_trainer.train_model()
+printout("Training: DONE.")
+
+####################
+# RESULTS.
+# Print the used parameters and check whether the loss decreased enough.
+####################
+
+printout("Parameters used for this experiment:")
+params.show()
+'''
 ####################
 # TESTING
 # Pass the first test set snapshot (the test snapshot).
@@ -68,4 +89,4 @@ actual_density, predicted_density = tester.test_snapshot(0)
 data_handler.target_calculator.read_additional_calculation_data("qe.out", data_handler.get_snapshot_calculation_output(2))
 actual_number_of_electrons = data_handler.target_calculator.get_number_of_electrons(actual_density)
 predicted_number_of_electrons = data_handler.target_calculator.get_number_of_electrons(predicted_density)
-printout(actual_number_of_electrons, predicted_number_of_electrons)
+printout(f"actual_number_of_electrons: {actual_number_of_electrons}, predicted_number_of_electrons: {predicted_number_of_electrons}")
