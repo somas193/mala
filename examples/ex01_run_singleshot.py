@@ -17,7 +17,7 @@ from *.npy files.
 ####################
 
 test_parameters = mala.Parameters()
-test_parameters.use_gpu = True
+test_parameters.use_gpu = False
 # Currently, the splitting in training, validation and test set are
 # done on a "by snapshot" basis. Specify how this is
 # done by providing a list containing entries of the form
@@ -91,3 +91,16 @@ printout("Training: DONE.")
 
 printout("Parameters used for this experiment:")
 test_parameters.show()
+
+####################
+# TESTING
+# Pass the first test set snapshot (the test snapshot).
+####################
+
+tester = mala.Tester(test_parameters, test_network, data_handler)
+actual_density, predicted_density = tester.test_snapshot(0)
+# First test snapshot --> 2nd in total
+data_handler.target_calculator.read_additional_calculation_data("qe.out", data_handler.get_snapshot_calculation_output(2))
+actual_number_of_electrons = data_handler.target_calculator.get_number_of_electrons(actual_density)
+predicted_number_of_electrons = data_handler.target_calculator.get_number_of_electrons(predicted_density)
+printout(f"actual_number_of_electrons: {actual_number_of_electrons}, predicted_number_of_electrons: {predicted_number_of_electrons}")
