@@ -11,6 +11,7 @@ parameters are optimized. It is similar to ex04 in that regard.
 """
 
 params = mala.Parameters()
+params.use_gpu = False
 
 # Specify the data scaling.
 params.data.input_rescaling_type = "feature-wise-standard"
@@ -18,6 +19,8 @@ params.data.output_rescaling_type = "normal"
 
 # Specify the used activation function.
 params.model.loss_function_type = "gaussian_likelihood"
+params.model.kernel = "linear"
+#params.model.kernel = "rbf+linear"
 
 # Specify the training parameters.
 params.running.max_number_epochs = 10
@@ -50,9 +53,10 @@ printout("Read data: DONE.")
 
 ####################
 # MODEL SETUP
-# Set up the model and trainer we want to use.
+# Set up the model.
+# Gaussian Processes do not have to be trained in order
+# to captue the trainint data.
 ####################
-params.model.kernel = "linear"
 model = mala.GaussianProcesses(params, data_handler)
 trainer = mala.Trainer(params, model, data_handler)
 printout("Network setup: DONE.")
@@ -77,4 +81,4 @@ actual_density, predicted_density = tester.test_snapshot(0)
 data_handler.target_calculator.read_additional_calculation_data("qe.out", data_handler.get_snapshot_calculation_output(2))
 actual_number_of_electrons = data_handler.target_calculator.get_number_of_electrons(actual_density)
 predicted_number_of_electrons = data_handler.target_calculator.get_number_of_electrons(predicted_density)
-printout(actual_number_of_electrons, predicted_number_of_electrons)
+printout(f"actual_number_of_electrons: {actual_number_of_electrons}, predicted_number_of_electrons: {predicted_number_of_electrons}")
