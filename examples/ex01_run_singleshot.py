@@ -17,7 +17,7 @@ from *.npy files.
 ####################
 
 test_parameters = mala.Parameters()
-test_parameters.use_gpu = False
+test_parameters.use_gpu = True
 # Currently, the splitting in training, validation and test set are
 # done on a "by snapshot" basis. Specify how this is
 # done by providing a list containing entries of the form
@@ -33,7 +33,7 @@ test_parameters.model.layer_activations = ["ReLU"]
 
 # Specify the training parameters.
 test_parameters.running.max_number_epochs = 20
-test_parameters.running.mini_batch_size = 40
+test_parameters.running.mini_batch_size = 4000
 test_parameters.running.learning_rate = 0.00001
 test_parameters.running.trainingtype = "Adam"
 test_parameters.targets.target_type = "Density"
