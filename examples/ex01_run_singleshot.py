@@ -1,3 +1,4 @@
+import torch
 import mala
 from mala import printout
 from data_repo_path import data_repo_path
@@ -105,6 +106,7 @@ test_parameters.show()
 
 tester = mala.Tester(test_parameters, test_network, data_handler)
 actual_density, predicted_density = tester.test_snapshot(0)
+print(torch.cuda.memory_summary()) # print the cuda memory usage
 # First test snapshot --> 2nd in total
 data_handler.target_calculator.read_additional_calculation_data("qe.out", data_handler.get_snapshot_calculation_output(4))
 actual_number_of_electrons = data_handler.target_calculator.get_number_of_electrons(actual_density)

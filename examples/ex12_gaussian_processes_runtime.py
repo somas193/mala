@@ -121,6 +121,8 @@ for i in range(niter):
         use_gpu = False
     if dev_choice == 'gpu':
         use_gpu = True
+    print('\tRunning on: ', dev_choice)
+    
     t_datahandler, t_netsetup, t_testsetup, t_testinf = model_train_test(data_path, use_gpu)
     times[f'{dev_choice}_datahandler'].append(t_datahandler)
     times[f'{dev_choice}_netsetup'].append(t_netsetup)

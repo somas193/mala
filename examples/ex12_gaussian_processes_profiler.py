@@ -36,7 +36,7 @@ with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
     """
 
     params = mala.Parameters()
-    params.use_gpu = False
+    params.use_gpu = True
 
     # Specify the data scaling.
     params.data.input_rescaling_type = "feature-wise-standard"

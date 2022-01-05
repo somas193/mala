@@ -1,3 +1,4 @@
+import torch
 import mala
 from mala import printout
 from data_repo_path import data_repo_path
@@ -11,6 +12,7 @@ parameters (it is the equivalent to ex01 in that regard.)
 """
 
 params = mala.Parameters()
+params.use_gpu = True
 
 # Specify the data scaling.
 params.data.input_rescaling_type = "feature-wise-standard"
@@ -54,7 +56,7 @@ printout("Read data: DONE.")
 # Gaussian Processes do not have to be trained in order
 # to captue the trainint data.
 ####################
-params.model.kernel = "linear"
+params.model.kernel = "rbf"
 model = mala.GaussianProcesses(params, data_handler)
 
 ####################

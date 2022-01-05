@@ -41,7 +41,7 @@ with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
     ####################
 
     test_parameters = mala.Parameters()
-    test_parameters.use_gpu = False
+    test_parameters.use_gpu = True
     # Currently, the splitting in training, validation and test set are
     # done on a "by snapshot" basis. Specify how this is
     # done by providing a list containing entries of the form
