@@ -1,7 +1,6 @@
 import mala
 from mala import printout
 from data_repo_path import data_repo_path
-
 data_path = data_repo_path + "Be2/densities_gp/"
 
 from pathlib import Path
@@ -29,41 +28,41 @@ with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
              record_shapes=True,
              profile_memory=True,
              use_cuda=True) as prof:
+    """
+    ex01_run_singleshot.py: Shows how a neural models can be trained on material 
+    data using this framework. It uses preprocessed data, that is read in 
+    from *.npy files.
+    """
+
+    ####################
+    # PARAMETERS
+    # All parameters are handled from a central parameters class that
+    # contains subclasses.
+    ####################
+
+    test_parameters = mala.Parameters()
+    test_parameters.use_gpu = False
+    # Currently, the splitting in training, validation and test set are
+    # done on a "by snapshot" basis. Specify how this is
+    # done by providing a list containing entries of the form
+    # "tr", "va" and "te".
+    test_parameters.data.data_splitting_type = "by_snapshot"
+
+    # Specify the data scaling.
+    test_parameters.data.input_rescaling_type = "feature-wise-standard"
+    test_parameters.data.output_rescaling_type = "normal"
+
+    # Specify the used activation function.
+    test_parameters.model.layer_activations = ["ReLU"]
+
+    # Specify the training parameters.
+    test_parameters.running.max_number_epochs = 1
+    test_parameters.running.mini_batch_size = 4000
+    test_parameters.running.learning_rate = 0.00001
+    test_parameters.running.trainingtype = "Adam"
+    test_parameters.targets.target_type = "Density"
+
     with record_function("data_loader"):
-        """
-        ex01_run_singleshot.py: Shows how a neural models can be trained on material 
-        data using this framework. It uses preprocessed data, that is read in 
-        from *.npy files.
-        """
-
-        ####################
-        # PARAMETERS
-        # All parameters are handled from a central parameters class that
-        # contains subclasses.
-        ####################
-
-        test_parameters = mala.Parameters()
-        test_parameters.use_gpu = False
-        # Currently, the splitting in training, validation and test set are
-        # done on a "by snapshot" basis. Specify how this is
-        # done by providing a list containing entries of the form
-        # "tr", "va" and "te".
-        test_parameters.data.data_splitting_type = "by_snapshot"
-
-        # Specify the data scaling.
-        test_parameters.data.input_rescaling_type = "feature-wise-standard"
-        test_parameters.data.output_rescaling_type = "normal"
-
-        # Specify the used activation function.
-        test_parameters.model.layer_activations = ["ReLU"]
-
-        # Specify the training parameters.
-        test_parameters.running.max_number_epochs = 1
-        test_parameters.running.mini_batch_size = 4000
-        test_parameters.running.learning_rate = 0.00001
-        test_parameters.running.trainingtype = "Adam"
-        test_parameters.targets.target_type = "Density"
-
         ####################
         # DATA
         # Add and prepare snapshots for training.
@@ -76,12 +75,17 @@ with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
         outputs_folder = data_path + "outputs_density/"
         additional_folder = data_path + "additional_info_qeouts/"
         data_handler.add_snapshot("snapshot0.in.npy", inputs_folder,
-                                  "snapshot0.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
+                                "snapshot0.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
         data_handler.add_snapshot("snapshot1.in.npy", inputs_folder,
-                                  "snapshot1.out.npy", outputs_folder, add_snapshot_as="va", output_units="None")
+                                "snapshot1.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
         data_handler.add_snapshot("snapshot2.in.npy", inputs_folder,
-                                  "snapshot2.out.npy", outputs_folder, add_snapshot_as="te",
-                                  output_units="None", calculation_output_file=additional_folder + "snapshot2.out")
+                                "snapshot2.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
+                                
+        data_handler.add_snapshot("snapshot3.in.npy", inputs_folder,
+                                "snapshot3.out.npy", outputs_folder, add_snapshot_as="va", output_units="None")
+        data_handler.add_snapshot("snapshot4.in.npy", inputs_folder,
+                                "snapshot4.out.npy", outputs_folder, add_snapshot_as="te",
+                                output_units="None", calculation_output_file=additional_folder+"snapshot4.out")
         data_handler.prepare_data()
 
     with record_function("network_setup"):
@@ -114,13 +118,14 @@ with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
         ####################
 
         tester = mala.Tester(test_parameters, test_network, data_handler)
+    
     with record_function("inference"):
         actual_density, predicted_density = tester.test_snapshot(0)
 
     with record_function("target_calculation"):
         # First test snapshot --> 2nd in total
         data_handler.target_calculator.read_additional_calculation_data("qe.out",
-                                                                        data_handler.get_snapshot_calculation_output(2))
+                                                                        data_handler.get_snapshot_calculation_output(4))
         actual_number_of_electrons = data_handler.target_calculator.get_number_of_electrons(actual_density)
         predicted_number_of_electrons = data_handler.target_calculator.get_number_of_electrons(predicted_density)
         printout(
@@ -135,4 +140,4 @@ if test_parameters.use_gpu:
     dev = "gpu"
 else:
     dev = "cpu"
-prof.export_chrome_trace(f"./traces/trace_{dev}.json")
+prof.export_chrome_trace(f"./traces/NN_trace_{dev}.json")

@@ -76,10 +76,15 @@ def model_train_test(data_path, use_gpu):
     data_handler.add_snapshot("snapshot0.in.npy", inputs_folder,
                             "snapshot0.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
     data_handler.add_snapshot("snapshot1.in.npy", inputs_folder,
-                            "snapshot1.out.npy", outputs_folder, add_snapshot_as="va", output_units="None")
+                            "snapshot1.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
     data_handler.add_snapshot("snapshot2.in.npy", inputs_folder,
-                            "snapshot2.out.npy", outputs_folder, add_snapshot_as="te",
-                            output_units="None", calculation_output_file=additional_folder+"snapshot2.out")
+                            "snapshot2.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
+                            
+    data_handler.add_snapshot("snapshot3.in.npy", inputs_folder,
+                            "snapshot3.out.npy", outputs_folder, add_snapshot_as="va", output_units="None")
+    data_handler.add_snapshot("snapshot4.in.npy", inputs_folder,
+                            "snapshot4.out.npy", outputs_folder, add_snapshot_as="te",
+                            output_units="None", calculation_output_file=additional_folder+"snapshot4.out")
     data_handler.prepare_data()
     t1_datahandler = time.time()
     t_datahandler = t1_datahandler - t0_datahandler
@@ -152,6 +157,8 @@ for i in range(niter):
     times[f'{dev_choice}_nettrain'].append(t_nettrain)
     times[f'{dev_choice}_infsetup'].append(t_testsetup)
     times[f'{dev_choice}_inference'].append(t_testinf)
+    #print(f'{dev_choice}_netsetup : {t_netsetup}')
+    #print(f'{dev_choice}_nettrain : {t_nettrain}')
 
 for name, numbers in times.items():
     print('Item:', name, 'Used', len(numbers), 'times')
@@ -159,5 +166,5 @@ for name, numbers in times.items():
     print('\tMEAN  ', statistics.mean(numbers))
     print('\tSTDEV ', statistics.stdev(numbers))
 
-with open('runtime.pkl', 'wb') as f:
+with open('NN_runtime.pkl', 'wb') as f:
     pickle.dump(times, f)
