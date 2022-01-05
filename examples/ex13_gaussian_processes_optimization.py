@@ -53,9 +53,7 @@ printout("Read data: DONE.")
 
 ####################
 # MODEL SETUP
-# Set up the model.
-# Gaussian Processes do not have to be trained in order
-# to captue the trainint data.
+# Set up the model and trainer we want to use.
 ####################
 model = mala.GaussianProcesses(params, data_handler)
 trainer = mala.Trainer(params, model, data_handler)
