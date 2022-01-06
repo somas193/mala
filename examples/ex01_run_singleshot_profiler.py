@@ -41,7 +41,7 @@ with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
     ####################
 
     test_parameters = mala.Parameters()
-    test_parameters.use_gpu = True
+    test_parameters.use_gpu = False
     test_parameters.manual_seed = seed
     # Currently, the splitting in training, validation and test set are
     # done on a "by snapshot" basis. Specify how this is
@@ -58,7 +58,7 @@ with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
 
     # Specify the training parameters.
     test_parameters.running.max_number_epochs = 1
-    test_parameters.running.mini_batch_size = 4000
+    test_parameters.running.mini_batch_size = 3000
     test_parameters.running.learning_rate = 0.00001
     test_parameters.running.trainingtype = "Adam"
     test_parameters.targets.target_type = "Density"

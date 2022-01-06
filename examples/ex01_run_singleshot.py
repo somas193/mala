@@ -35,7 +35,7 @@ test_parameters.model.layer_activations = ["ReLU"]
 
 # Specify the training parameters.
 test_parameters.running.max_number_epochs = 20
-test_parameters.running.mini_batch_size = 1000
+test_parameters.running.mini_batch_size = 3000
 test_parameters.running.learning_rate = 0.00001
 test_parameters.running.trainingtype = "Adam"
 test_parameters.targets.target_type = "Density"
