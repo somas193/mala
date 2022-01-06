@@ -21,8 +21,8 @@ def seed_all(seed):
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-
-seed_all(14012022)
+seed = 14012022
+seed_all(seed)
 
 with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
              record_shapes=True,
@@ -42,6 +42,7 @@ with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
 
     test_parameters = mala.Parameters()
     test_parameters.use_gpu = True
+    test_parameters.manual_seed = seed
     # Currently, the splitting in training, validation and test set are
     # done on a "by snapshot" basis. Specify how this is
     # done by providing a list containing entries of the form
@@ -97,7 +98,7 @@ with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
         ####################
 
         test_parameters.model.layer_sizes = [data_handler.get_input_dimension(),
-                                             100,
+                                             400, 400,
                                              data_handler.get_output_dimension()]
 
         # Setup models and trainer.

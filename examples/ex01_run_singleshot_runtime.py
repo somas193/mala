@@ -17,14 +17,16 @@ def seed_all(seed):
     torch.cuda.manual_seed_all(seed)
     torch.cuda.manual_seed(seed)
     numpy.random.seed(seed)
-    random.seed(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
-    
-seed_all(14012022)
+
+seed = 14012022
+random.seed(seed)
 
 
 def model_train_test(data_path, use_gpu):
+
+    seed_all(seed)
 
     """
     ex01_run_singleshot.py: Shows how a neural models can be trained on material 
@@ -40,6 +42,7 @@ def model_train_test(data_path, use_gpu):
     ####################
 
     test_parameters = mala.Parameters()
+    test_parameters.manual_seed = seed
     # Currently, the splitting in training, validation and test set are
     # done on a "by snapshot" basis. Specify how this is
     # done by providing a list containing entries of the form
@@ -97,7 +100,7 @@ def model_train_test(data_path, use_gpu):
     ####################
     t0_netsetup = time.time()
     test_parameters.model.layer_sizes = [data_handler.get_input_dimension(),
-                                        100,
+                                        400, 400,
                                         data_handler.get_output_dimension()]
 
     # Setup models and trainer.
