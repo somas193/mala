@@ -23,7 +23,7 @@ params.model.kernel = "linear"
 #params.model.kernel = "rbf+linear"
 
 # Specify the training parameters.
-params.running.max_number_epochs = 10
+params.running.max_number_epochs = 20
 
 # This should be 1, and MALA will set it automatically to, if we don't.
 params.running.mini_batch_size = 40
