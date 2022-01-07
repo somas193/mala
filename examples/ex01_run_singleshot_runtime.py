@@ -24,7 +24,7 @@ seed = 14012022
 random.seed(seed)
 
 
-def model_train_test(data_path, use_gpu):
+def model_train_test(data_path, use_gpu, snap_nr):
 
     seed_all(seed)
 
@@ -76,12 +76,15 @@ def model_train_test(data_path, use_gpu):
     inputs_folder = data_path+"inputs_snap/"
     outputs_folder = data_path+"outputs_density/"
     additional_folder = data_path+"additional_info_qeouts/"
+
     data_handler.add_snapshot("snapshot0.in.npy", inputs_folder,
                             "snapshot0.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
-    data_handler.add_snapshot("snapshot1.in.npy", inputs_folder,
-                            "snapshot1.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
-    data_handler.add_snapshot("snapshot2.in.npy", inputs_folder,
-                            "snapshot2.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
+    if (snap_nr > 1):
+        data_handler.add_snapshot("snapshot1.in.npy", inputs_folder,
+                                "snapshot1.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
+    if (snap_nr > 2):                            
+        data_handler.add_snapshot("snapshot2.in.npy", inputs_folder,
+                                "snapshot2.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
                             
     data_handler.add_snapshot("snapshot3.in.npy", inputs_folder,
                             "snapshot3.out.npy", outputs_folder, add_snapshot_as="va", output_units="None")
@@ -142,11 +145,12 @@ def model_train_test(data_path, use_gpu):
 
 
 dev = ["cpu", "gpu"]
+snaps = ["1", "2", "3"]
 time_types = ["datahandler", "netsetup", "nettrain", "infsetup", "inference"]
-total_types = ['_'.join(f) for f in itertools.product(dev, time_types)]
+total_types = ['_'.join(f) for f in itertools.product(dev, snaps, time_types)]
 times = {f: [] for f in total_types}
 
-niter = 200
+niter = 600
 
 for i in range(niter):
     dev_choice = random.choice(dev)
@@ -154,16 +158,18 @@ for i in range(niter):
         use_gpu = False
     if dev_choice == 'gpu':
         use_gpu = True
-    print('\tRunning on: ', dev_choice)
+
+    snap_nr = random.choice(snaps)
+    print(f'\tRunning on: {dev_choice}, snaps for training: {snap_nr}')
     
-    t_datahandler, t_netsetup, t_nettrain, t_testsetup, t_testinf = model_train_test(data_path, use_gpu)
-    times[f'{dev_choice}_datahandler'].append(t_datahandler)
-    times[f'{dev_choice}_netsetup'].append(t_netsetup)
-    times[f'{dev_choice}_nettrain'].append(t_nettrain)
-    times[f'{dev_choice}_infsetup'].append(t_testsetup)
-    times[f'{dev_choice}_inference'].append(t_testinf)
-    #print(f'{dev_choice}_netsetup : {t_netsetup}')
-    #print(f'{dev_choice}_nettrain : {t_nettrain}')
+    t_datahandler, t_netsetup, t_nettrain, t_testsetup, t_testinf = model_train_test(data_path, use_gpu, int(snap_nr))
+    times[f'{dev_choice}_{snap_nr}_datahandler'].append(t_datahandler)
+    times[f'{dev_choice}_{snap_nr}_netsetup'].append(t_netsetup)
+    times[f'{dev_choice}_{snap_nr}_nettrain'].append(t_nettrain)
+    times[f'{dev_choice}_{snap_nr}_infsetup'].append(t_testsetup)
+    times[f'{dev_choice}_{snap_nr}_inference'].append(t_testinf)
+    #print(f'{dev_choice}_{snap_nr}_netsetup : {t_netsetup}')
+    #print(f'{dev_choice}_{snap_nr}_nettrain : {t_nettrain}')
 
 for name, numbers in times.items():
     print('Item:', name, 'Used', len(numbers), 'times')
