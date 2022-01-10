@@ -1,0 +1,135 @@
+RAM: 376GB
+CPU: 16 cores on Intel(R) Xeon(R) Gold 6136 CPU @ 3.00GHz
+GPU: NVIDIA Tesla V100 
+
+#########################################
+#NN hyperparameter optimization runtime #
+#                                       #
+#########################################
+
+Item: cpu_hyp_optim Used 41 times
+        MEDIAN 109.58543970808387
+        MEAN   107.54643293361111
+        STDEV  10.294471555872473
+Item: cpu_inference Used 41 times
+        MEDIAN 0.0037170108407735825
+        MEAN   0.0036829774517838547
+        STDEV  0.0003210027272615225
+Item: gpu_hyp_optim Used 39 times
+        MEDIAN 40.660735135897994
+        MEAN   40.606289281724735
+        STDEV  0.4396362870078526
+Item: gpu_inference Used 39 times
+        MEDIAN 0.0017462484538555145
+        MEAN   0.0017439130789194352
+        STDEV  2.8037453882408752e-05
+        
+#########################################
+#GP hyperparameter optimization runtime #
+#Linear kernel                          #
+#########################################
+
+Item: cpu_hyp_optim Used 41 times
+        MEDIAN 4.544744096696377
+        MEAN   4.668404126358105
+        STDEV  0.6318997424362903
+Item: cpu_inference Used 41 times
+        MEDIAN 0.00382034108042717
+        MEAN   0.0039035535258490866
+        STDEV  0.00047313778076819754
+Item: gpu_hyp_optim Used 39 times
+        MEDIAN 1.5338558182120323
+        MEAN   1.5416607388701193
+        STDEV  0.058176092198600336
+Item: gpu_inference Used 39 times
+        MEDIAN 0.0018737372010946274
+        MEAN   0.0018982733002839945
+        STDEV  4.6931435500512004e-05
+        
+#########################################
+#GP hyperparameter optimization runtime #
+#RBF kernel                             #
+#########################################
+
+Item: cpu_hyp_optim Used 41 times
+        MEDIAN 27.6379857044667
+        MEAN   30.06546802296326
+        STDEV  4.653312184935659
+Item: cpu_inference Used 41 times
+        MEDIAN 0.08258740790188313
+        MEAN   0.08396768837985469
+        STDEV  0.008009087386921635
+Item: gpu_hyp_optim Used 39 times
+        MEDIAN 4.058422500267625
+        MEAN   4.078415524787628
+        STDEV  0.2497877934219911
+Item: gpu_inference Used 39 times
+        MEDIAN 0.007211558520793915
+        MEAN   0.007186820873847375
+        STDEV  0.00041631875663831943   
+        
+#########################################
+#GP hyperparameter optimization runtime #
+#RBF kernel- CUDA Sync                  #
+#########################################
+
+Item: cpu_hyp_optim Used 41 times
+        MEDIAN 34.29503174684942
+        MEAN   35.87029652061259
+        STDEV  7.6283932540053945
+Item: cpu_inference Used 41 times
+        MEDIAN 0.08399910479784012
+        MEAN   0.09453305506669893
+        STDEV  0.017592353319205934
+Item: gpu_hyp_optim Used 39 times
+        MEDIAN 4.099452383816242
+        MEAN   4.1439431709929915
+        STDEV  0.2682960860535762
+Item: gpu_inference Used 39 times
+        MEDIAN 0.006950428709387779
+        MEAN   0.007248367779912093
+        STDEV  0.0006153296201086425 
+        
+#########################################
+#GP hyperparameter optimization runtime #
+#RBF kernel- 2 training snapshots       #
+#########################################
+
+Item: cpu_hyp_optim Used 41 times
+        MEDIAN 101.83221564814448
+        MEAN   96.88355312301073
+        STDEV  15.218085486220117
+Item: cpu_inference Used 41 times
+        MEDIAN 0.2173387873917818
+        MEAN   0.21115112359203944
+        STDEV  0.025459736878581916
+Item: gpu_hyp_optim Used 39 times
+        MEDIAN 13.230468625202775
+        MEAN   13.211120127007748
+        STDEV  0.12294162966097906
+Item: gpu_inference Used 39 times
+        MEDIAN 0.017810681834816933
+        MEAN   0.017793170916728485
+        STDEV  0.0002410843248244305  
+        
+#########################################
+#GP hyperparameter optimization runtime #
+#RBF+linear kernel                      #
+#########################################
+
+Item: cpu_hyp_optim Used 41 times
+        MEDIAN 100.06743451580405
+        MEAN   102.60981273274051
+        STDEV  11.553864214400036
+Item: cpu_inference Used 41 times
+        MEDIAN 0.06956005096435547
+        MEAN   0.07340016788462313
+        STDEV  0.010759983407902613
+Item: gpu_hyp_optim Used 39 times
+        MEDIAN 13.165537269786
+        MEAN   13.159279621516665
+        STDEV  0.7443202258533489
+Item: gpu_inference Used 39 times
+        MEDIAN 0.006751641631126404
+        MEAN   0.006814407471280832
+        STDEV  0.0002798998003038056

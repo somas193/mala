@@ -54,7 +54,7 @@ def hypopt_train_test(data_path, use_gpu):
 
     # Specify the training parameters.
     test_parameters.running.max_number_epochs = 20
-    test_parameters.running.mini_batch_size = 4000
+    test_parameters.running.mini_batch_size = 1000
     test_parameters.running.learning_rate = 0.00001
     test_parameters.running.trainingtype = "Adam"
     test_parameters.targets.target_type = "Density"
@@ -113,6 +113,9 @@ def hypopt_train_test(data_path, use_gpu):
     # Number of neurons per layer will be optimized.
     test_hp_optimizer.add_hyperparameter("int", "ff_neurons_layer_00", 10, 100)
     test_hp_optimizer.add_hyperparameter("int", "ff_neurons_layer_01", 10, 100)
+
+    # # Batch size will be optimized
+    # test_hp_optimizer.add_hyperparameter("int", "mini_batch_size", 40, 4000)
 
     # Choices for activation function at each layer will be optimized.
     test_hp_optimizer.add_hyperparameter("categorical", "layer_activation_00",
@@ -194,7 +197,7 @@ time_types = ["parameters", "datahandler", "sethypparam", "hyp_optim", "netsetup
 total_types = ['_'.join(f) for f in itertools.product(dev, time_types)]
 times = {f: [] for f in total_types}
 
-niter = 10
+niter = 80
 
 for i in range(niter):
     dev_choice = random.choice(dev)

@@ -4,9 +4,8 @@ from data_repo_path import data_repo_path
 data_path = data_repo_path+"Be2/densities_gp/"
 
 from pathlib import Path
-
-#Path("./traces").mkdir(parents=True, exist_ok=True)
 Path("./tb_logs/gp").mkdir(parents=True, exist_ok=True)
+
 import random
 import numpy
 import torch
@@ -33,10 +32,10 @@ with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
              profile_memory=True,
              with_stack=True) as prof:
     """
-    ex12_gassian_processes.py: Shows how Gaussian processes can be used
-    to learn the electronic density with MALA. Backend is GPytorch.
-    This is a "Single Shot" Gaussian process, meaning we do not optimize the hyper-
-    parameters (it is the equivalent to ex01 in that regard.)
+    ex13_gaussian_processes_optimization.py: Shows how Gaussian processes can be 
+    used to learn the electronic density with MALA. Backend is GPytorch.
+    Here, an optimization is performed in the sense that the model (hyper-)
+    parameters are optimized. It is similar to ex04 in that regard.
     """
 
     params = mala.Parameters()
@@ -49,9 +48,10 @@ with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
     # Specify the used activation function.
     params.model.loss_function_type = "gaussian_likelihood"
     params.model.kernel = "rbf"
+    #params.model.kernel = "rbf+linear"
 
     # Specify the training parameters.
-    params.running.max_number_epochs = 1
+    params.running.max_number_epochs = 20
 
     # This should be 1, and MALA will set it automatically to, if we don't.
     params.running.mini_batch_size = 40
@@ -74,25 +74,32 @@ with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
         data_handler.add_snapshot("snapshot0.in.npy", inputs_folder,
                                 "snapshot0.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
         data_handler.add_snapshot("snapshot1.in.npy", inputs_folder,
-                                "snapshot1.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
+                                "snapshot1.out.npy", outputs_folder, add_snapshot_as="va", output_units="None")
         data_handler.add_snapshot("snapshot2.in.npy", inputs_folder,
-                                "snapshot2.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
-        data_handler.add_snapshot("snapshot3.in.npy", inputs_folder,
-                                "snapshot3.out.npy", outputs_folder, add_snapshot_as="va", output_units="None")
-        data_handler.add_snapshot("snapshot4.in.npy", inputs_folder,
-                                "snapshot4.out.npy", outputs_folder, add_snapshot_as="te",
-                                output_units="None", calculation_output_file=additional_folder+"snapshot4.out")
+                                "snapshot2.out.npy", outputs_folder, add_snapshot_as="te",
+                                output_units="None", calculation_output_file=additional_folder+"snapshot2.out")
         data_handler.prepare_data(transpose_data=True)
+        printout("Read data: DONE.")
 
     with record_function("network_setup"):
         ####################
         # MODEL SETUP
-        # Set up the model.
-        # Gaussian Processes do not have to be trained in order
-        # to captue the trainint data.
+        # Set up the model and trainer we want to use.
         ####################
         model = mala.GaussianProcesses(params, data_handler)
-    
+        trainer = mala.Trainer(params, model, data_handler)
+        printout("Network setup: DONE.")
+
+    with record_function("optimization"):
+        ####################
+        # TRAINING
+        # Train the network.
+        ####################
+
+        printout("Starting training.")
+        trainer.train_model()
+        printout("Training: DONE.")
+
     with record_function("tester_setup"):
         ####################
         # TESTING
@@ -100,27 +107,13 @@ with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
         ####################
 
         tester = mala.Tester(params, model, data_handler)
-    
-    with record_function("inference"):
+
+    with record_function("inference"):    
         actual_density, predicted_density = tester.test_snapshot(0)
 
     with record_function("target_calculation"):
         # First test snapshot --> 2nd in total
-        data_handler.target_calculator.read_additional_calculation_data("qe.out", data_handler.get_snapshot_calculation_output(4))
+        data_handler.target_calculator.read_additional_calculation_data("qe.out", data_handler.get_snapshot_calculation_output(2))
         actual_number_of_electrons = data_handler.target_calculator.get_number_of_electrons(actual_density)
         predicted_number_of_electrons = data_handler.target_calculator.get_number_of_electrons(predicted_density)
-        printout(
-            f"actual_number_of_electrons: {actual_number_of_electrons}, predicted_number_of_electrons: {predicted_number_of_electrons}")
-
-
-#print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=3))
-#print(prof.key_averages().table(sort_by="cpu_memory_usage", row_limit=3))
-#print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=3))
-#print(prof.key_averages().table(sort_by="cuda_memory_usage", row_limit=3))
-
-# if params.use_gpu:
-#     dev = "gpu"
-# else:
-#     dev = "cpu"
-# prof.export_chrome_trace(f"./traces/GP_trace_{dev}.json")
-#tensorboard --logdir=./log
+        printout(f"actual_number_of_electrons: {actual_number_of_electrons}, predicted_number_of_electrons: {predicted_number_of_electrons}")

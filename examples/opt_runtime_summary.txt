@@ -1,0 +1,344 @@
+RAM: 376GB
+CPU: 16 cores on Intel(R) Xeon(R) Gold 6136 CPU @ 3.00GHz
+GPU: NVIDIA Tesla V100 
+
+#########################################
+#NN hyperparameter optimization runtime #
+#                                       #
+#########################################
+
+Item: cpu_parameters Used 41 times
+        MEDIAN 6.706826388835907e-05
+        MEAN   7.661277564560495e-05
+        STDEV  2.419816304489892e-05
+Item: cpu_datahandler Used 41 times
+        MEDIAN 0.014117008075118065
+        MEAN   0.016120642105617176
+        STDEV  0.004653218928984926
+Item: cpu_sethypparam Used 41 times
+        MEDIAN 0.0013670679181814194
+        MEAN   0.0013278328881758015
+        STDEV  0.00021175037723700647
+Item: cpu_hyp_optim Used 41 times
+        MEDIAN 109.58543970808387
+        MEAN   107.54643293361111
+        STDEV  10.294471555872473
+Item: cpu_netsetup Used 41 times
+        MEDIAN 0.0008484292775392532
+        MEAN   0.0011188512350000987
+        STDEV  0.0003545130108358958
+Item: cpu_nettrain Used 41 times
+        MEDIAN 6.084513479843736
+        MEAN   5.785250453460144
+        STDEV  0.5942227782314877
+Item: cpu_infsetup Used 41 times
+        MEDIAN 0.00020644254982471466
+        MEAN   0.00017273348824280066
+        STDEV  5.5506173268953927e-05
+Item: cpu_inference Used 41 times
+        MEDIAN 0.0037170108407735825
+        MEAN   0.0036829774517838547
+        STDEV  0.0003210027272615225
+Item: gpu_parameters Used 39 times
+        MEDIAN 7.280707359313965e-05
+        MEAN   8.555764380173806e-05
+        STDEV  2.7293999170152287e-05
+Item: gpu_datahandler Used 39 times
+        MEDIAN 0.017087697982788086
+        MEAN   0.01638924378233078
+        STDEV  0.0025435375722447627
+Item: gpu_sethypparam Used 39 times
+        MEDIAN 0.0013717617839574814
+        MEAN   0.0013866442709397047
+        STDEV  3.612634529243346e-05
+Item: gpu_hyp_optim Used 39 times
+        MEDIAN 40.660735135897994
+        MEAN   40.606289281724735
+        STDEV  0.4396362870078526
+Item: gpu_netsetup Used 39 times
+        MEDIAN 0.0007861033082008362
+        MEAN   0.0007869482326966065
+        STDEV  1.9538971918054533e-05
+Item: gpu_nettrain Used 39 times
+        MEDIAN 2.0293384585529566
+        MEAN   2.0263166879900756
+        STDEV  0.022079234391888802
+Item: gpu_infsetup Used 39 times
+        MEDIAN 7.853657007217407e-05
+        MEAN   7.798360326351263e-05
+        STDEV  3.4510654185282318e-06
+Item: gpu_inference Used 39 times
+        MEDIAN 0.0017462484538555145
+        MEAN   0.0017439130789194352
+        STDEV  2.8037453882408752e-05
+
+#########################################
+#GP hyperparameter optimization runtime #
+#Linear kernel                          #
+#########################################
+
+Item: cpu_parameters Used 41 times
+        MEDIAN 6.898865103721619e-05
+        MEAN   8.752119795578282e-05
+        STDEV  3.925604822034691e-05
+Item: cpu_datahandler Used 41 times
+        MEDIAN 0.018465422093868256
+        MEAN   0.02046633811622131
+        STDEV  0.019183596737524736
+Item: cpu_netsetup Used 41 times
+        MEDIAN 0.00227472186088562
+        MEAN   0.0023387304802493353
+        STDEV  0.0003168400820228753
+Item: cpu_hyp_optim Used 41 times
+        MEDIAN 4.544744096696377
+        MEAN   4.668404126358105
+        STDEV  0.6318997424362903
+Item: cpu_infsetup Used 41 times
+        MEDIAN 0.00022346340119838715
+        MEAN   0.0002322935658257182
+        STDEV  2.4503610776470882e-05
+Item: cpu_inference Used 41 times
+        MEDIAN 0.00382034108042717
+        MEAN   0.0039035535258490866
+        STDEV  0.00047313778076819754
+Item: gpu_parameters Used 39 times
+        MEDIAN 0.00011105276644229889
+        MEAN   9.17288737419324e-05
+        STDEV  2.7193149639605068e-05
+Item: gpu_datahandler Used 39 times
+        MEDIAN 0.01911108009517193
+        MEAN   0.01857573911547661
+        STDEV  0.004477667571336542
+Item: gpu_netsetup Used 39 times
+        MEDIAN 0.0038025807589292526
+        MEAN   0.0680513168947819
+        STDEV  0.39956724956690975
+Item: gpu_hyp_optim Used 39 times
+        MEDIAN 1.5338558182120323
+        MEAN   1.5416607388701193
+        STDEV  0.058176092198600336
+Item: gpu_infsetup Used 39 times
+        MEDIAN 7.576495409011841e-05
+        MEAN   7.749043214015472e-05
+        STDEV  4.647494816994816e-06
+Item: gpu_inference Used 39 times
+        MEDIAN 0.0018737372010946274
+        MEAN   0.0018982733002839945
+        STDEV  4.6931435500512004e-05
+        
+#########################################
+#GP hyperparameter optimization runtime #
+#RBF kernel                             #
+#########################################
+
+Item: cpu_parameters Used 41 times
+        MEDIAN 0.00010744482278823853
+        MEAN   0.00010167880029213138
+        STDEV  3.390759408434174e-05
+Item: cpu_datahandler Used 41 times
+        MEDIAN 0.021034516394138336
+        MEAN   0.023461896153848347
+        STDEV  0.0066367472528796245
+Item: cpu_netsetup Used 41 times
+        MEDIAN 0.0023315809667110443
+        MEAN   0.0029168205744609602
+        STDEV  0.0010740257095307717
+Item: cpu_hyp_optim Used 41 times
+        MEDIAN 27.6379857044667
+        MEAN   30.06546802296326
+        STDEV  4.653312184935659
+Item: cpu_infsetup Used 41 times
+        MEDIAN 0.0003044232726097107
+        MEAN   0.000316958965324774
+        STDEV  4.420401398483572e-05
+Item: cpu_inference Used 41 times
+        MEDIAN 0.08258740790188313
+        MEAN   0.08396768837985469
+        STDEV  0.008009087386921635
+Item: gpu_parameters Used 39 times
+        MEDIAN 0.00011844374239444733
+        MEAN   0.00010598813876127586
+        STDEV  3.461852774092539e-05
+Item: gpu_datahandler Used 39 times
+        MEDIAN 0.020153749734163284
+        MEAN   0.02173124311062006
+        STDEV  0.00595707205743379
+Item: gpu_netsetup Used 39 times
+        MEDIAN 0.006747152656316757
+        MEAN   0.07080399899337536
+        STDEV  0.39497552871367714
+Item: gpu_hyp_optim Used 39 times
+        MEDIAN 4.058422500267625
+        MEAN   4.078415524787628
+        STDEV  0.2497877934219911
+Item: gpu_infsetup Used 39 times
+        MEDIAN 9.102746844291687e-05
+        MEAN   9.860852972055093e-05
+        STDEV  2.162610163795865e-05
+Item: gpu_inference Used 39 times
+        MEDIAN 0.007211558520793915
+        MEAN   0.007186820873847375
+        STDEV  0.00041631875663831943       
+
+#########################################
+#GP hyperparameter optimization runtime #
+#RBF kernel- CUDA Sync                  #
+#########################################
+
+Item: cpu_parameters Used 41 times
+        MEDIAN 9.018369019031525e-05
+        MEAN   0.00010571955907635572
+        STDEV  3.901207065149952e-05
+Item: cpu_datahandler Used 41 times
+        MEDIAN 0.01668987050652504
+        MEAN   0.019316234603160766
+        STDEV  0.01249439414225421
+Item: cpu_netsetup Used 41 times
+        MEDIAN 0.0022181179374456406
+        MEAN   0.0028821053210555054
+        STDEV  0.0017767178284949052
+Item: cpu_hyp_optim Used 41 times
+        MEDIAN 34.29503174684942
+        MEAN   35.87029652061259
+        STDEV  7.6283932540053945
+Item: cpu_infsetup Used 41 times
+        MEDIAN 0.00032954849302768707
+        MEAN   0.0003278618905602432
+        STDEV  5.980269296332344e-05
+Item: cpu_inference Used 41 times
+        MEDIAN 0.08399910479784012
+        MEAN   0.09453305506669893
+        STDEV  0.017592353319205934
+Item: gpu_parameters Used 39 times
+        MEDIAN 0.00012976676225662231
+        MEAN   0.00011309370016440366
+        STDEV  4.060736481432993e-05
+Item: gpu_datahandler Used 39 times
+        MEDIAN 0.01706058904528618
+        MEAN   0.020073797744818222
+        STDEV  0.007226551887125787
+Item: gpu_netsetup Used 39 times
+        MEDIAN 0.0066454652696847916
+        MEAN   0.008063606726817595
+        STDEV  0.0034614809806470534
+Item: gpu_hyp_optim Used 39 times
+        MEDIAN 4.099452383816242
+        MEAN   4.1439431709929915
+        STDEV  0.2682960860535762
+Item: gpu_infsetup Used 39 times
+        MEDIAN 0.00010161660611629486
+        MEAN   0.00011614485619924008
+        STDEV  6.110624397069921e-05
+Item: gpu_inference Used 39 times
+        MEDIAN 0.006950428709387779
+        MEAN   0.007248367779912093
+        STDEV  0.0006153296201086425      
+
+#########################################
+#GP hyperparameter optimization runtime #
+#RBF kernel- 2 training snapshots       #
+#########################################
+
+Item: cpu_parameters Used 41 times
+        MEDIAN 6.378255784511566e-05
+        MEAN   8.555215488119824e-05
+        STDEV  3.0630905475656825e-05
+Item: cpu_datahandler Used 41 times
+        MEDIAN 0.016139386221766472
+        MEAN   0.019518922650959433
+        STDEV  0.01040646339966397
+Item: cpu_netsetup Used 41 times
+        MEDIAN 0.0019748322665691376
+        MEAN   0.0018209886351009694
+        STDEV  0.00043340453527802327
+Item: cpu_hyp_optim Used 41 times
+        MEDIAN 101.83221564814448
+        MEAN   96.88355312301073
+        STDEV  15.218085486220117
+Item: cpu_infsetup Used 41 times
+        MEDIAN 0.000310579314827919
+        MEAN   0.0002969315320980258
+        STDEV  4.80808300072707e-05
+Item: cpu_inference Used 41 times
+        MEDIAN 0.2173387873917818
+        MEAN   0.21115112359203944
+        STDEV  0.025459736878581916
+Item: gpu_parameters Used 39 times
+        MEDIAN 7.529743015766144e-05
+        MEAN   9.323924015729855e-05
+        STDEV  3.1580361846773064e-05
+Item: gpu_datahandler Used 39 times
+        MEDIAN 0.015984732657670975
+        MEAN   0.017984198740659617
+        STDEV  0.0035557272751296507
+Item: gpu_netsetup Used 39 times
+        MEDIAN 0.013125184923410416
+        MEAN   0.06510965769680646
+        STDEV  0.3235673387636964
+Item: gpu_hyp_optim Used 39 times
+        MEDIAN 13.230468625202775
+        MEAN   13.211120127007748
+        STDEV  0.12294162966097906
+Item: gpu_infsetup Used 39 times
+        MEDIAN 9.366124868392944e-05
+        MEAN   9.572744751587893e-05
+        STDEV  1.7728116526600256e-05
+Item: gpu_inference Used 39 times
+        MEDIAN 0.017810681834816933
+        MEAN   0.017793170916728485
+        STDEV  0.0002410843248244305        
+        
+#########################################
+#GP hyperparameter optimization runtime #
+#RBF+linear kernel                      #
+#########################################
+
+Item: cpu_parameters Used 41 times
+        MEDIAN 8.602626621723175e-05
+        MEAN   9.153783321380615e-05
+        STDEV  3.466609426876372e-05
+Item: cpu_datahandler Used 41 times
+        MEDIAN 0.015934471040964127
+        MEAN   0.01598319956442205
+        STDEV  0.005431862645777795
+Item: cpu_netsetup Used 41 times
+        MEDIAN 0.0027704108506441116
+        MEAN   0.0027497954575753793
+        STDEV  0.0002363273288420752
+Item: cpu_hyp_optim Used 41 times
+        MEDIAN 100.06743451580405
+        MEAN   102.60981273274051
+        STDEV  11.553864214400036
+Item: cpu_infsetup Used 41 times
+        MEDIAN 0.000341927632689476
+        MEAN   0.0003472125021422782
+        STDEV  2.8184371853704055e-05
+Item: cpu_inference Used 41 times
+        MEDIAN 0.06956005096435547
+        MEAN   0.07340016788462313
+        STDEV  0.010759983407902613
+Item: gpu_parameters Used 39 times
+        MEDIAN 0.00011520832777023315
+        MEAN   0.00010047681056536161
+        STDEV  3.847976244919065e-05
+Item: gpu_datahandler Used 39 times
+        MEDIAN 0.0162198506295681
+        MEAN   0.01677526576587787
+        STDEV  0.003913820568990707
+Item: gpu_netsetup Used 39 times
+        MEDIAN 0.006622150540351868
+        MEAN   0.072192074253391
+        STDEV  0.4071155253098873
+Item: gpu_hyp_optim Used 39 times
+        MEDIAN 13.165537269786
+        MEAN   13.159279621516665
+        STDEV  0.7443202258533489
+Item: gpu_infsetup Used 39 times
+        MEDIAN 9.278766810894012e-05
+        MEAN   9.808441003163655e-05
+        STDEV  1.7168856748569965e-05
+Item: gpu_inference Used 39 times
+        MEDIAN 0.006751641631126404
+        MEAN   0.006814407471280832
+        STDEV  0.0002798998003038056
+
