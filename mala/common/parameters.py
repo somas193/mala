@@ -625,6 +625,7 @@ class Parameters:
         self.use_horovod = False
         self.use_gpu = False
         self.manual_seed = None
+        self.use_fast_pred_var = True	#fast predictive variances using LOVE for Gaussian Process
 
     @property
     def use_gpu(self):

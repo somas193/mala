@@ -491,23 +491,19 @@ class Trainer(Runner):
         if validation_type == "ldos":
             validation_loss = []
             with torch.no_grad():
-                if not self.gaussian_processes_used:
-                    for x, y in data_loader:
-                        if self.parameters_full.use_gpu:
-                            x = x.to('cuda')
-                            y = y.to('cuda')
-                        prediction = model(x)
-                        validation_loss.append(model.calculate_loss(prediction, y)
-                                               .item())
-                else:
-                    with gpytorch.settings.fast_pred_var():
-                        for x, y in data_loader:
-                            if self.parameters_full.use_gpu:
-                                x = x.to('cuda')
-                                y = y.to('cuda')
+                for x, y in data_loader:
+                    if self.parameters_full.use_gpu:
+                        x = x.to('cuda')
+                        y = y.to('cuda')
+                    if self.gaussian_processes_used and self.parameters_full.use_fast_pred_var:
+                        with gpytorch.settings.fast_pred_var():
                             prediction = model(x)
                             validation_loss.append(model.calculate_loss(prediction, y)
                                                    .item())
+                    else:
+                        prediction = model(x)
+                        validation_loss.append(model.calculate_loss(prediction, y)
+                                               .item())
 
             return np.mean(validation_loss)
         elif validation_type == "band_energy":
