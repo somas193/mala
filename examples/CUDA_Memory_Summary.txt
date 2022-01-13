@@ -1,8 +1,8 @@
 #################################################################################
 ## NN Model Training and Inference
-Model Hidden Layers : 400, 400
+Model Hidden Layers : 400, 800, 400
 Batch Size : 3000
-Epochs : 20
+Epochs : 10
 Nr. of snaps for training : 3
 #################################################################################
 
@@ -13,37 +13,37 @@ Nr. of snaps for training : 3
 |===========================================================================|
 |        Metric         | Cur Usage  | Peak Usage | Tot Alloc  | Tot Freed  |
 |---------------------------------------------------------------------------|
-| Allocated memory      |    2540 KB |   26678 KB |   11265 MB |   11263 MB |
-|       from large pool |       0 KB |   23462 KB |   10907 MB |   10907 MB |
-|       from small pool |    2540 KB |    3840 KB |     358 MB |     355 MB |
+| Allocated memory      |   10534 KB |   78947 KB |   11268 MB |   11257 MB |
+|       from large pool |   10480 KB |   78824 KB |   11253 MB |   11243 MB |
+|       from small pool |      54 KB |     191 KB |      14 MB |      14 MB |
 |---------------------------------------------------------------------------|
-| Active memory         |    2540 KB |   26678 KB |   11265 MB |   11263 MB |
-|       from large pool |       0 KB |   23462 KB |   10907 MB |   10907 MB |
-|       from small pool |    2540 KB |    3840 KB |     358 MB |     355 MB |
+| Active memory         |   10534 KB |   78947 KB |   11268 MB |   11257 MB |
+|       from large pool |   10480 KB |   78824 KB |   11253 MB |   11243 MB |
+|       from small pool |      54 KB |     191 KB |      14 MB |      14 MB |
 |---------------------------------------------------------------------------|
-| GPU reserved memory   |   45056 KB |   45056 KB |   45056 KB |       0 B  |
-|       from large pool |   40960 KB |   40960 KB |   40960 KB |       0 B  |
-|       from small pool |    4096 KB |    4096 KB |    4096 KB |       0 B  |
+| GPU reserved memory   |  120832 KB |  120832 KB |  120832 KB |       0 B  |
+|       from large pool |  118784 KB |  118784 KB |  118784 KB |       0 B  |
+|       from small pool |    2048 KB |    2048 KB |    2048 KB |       0 B  |
 |---------------------------------------------------------------------------|
-| Non-releasable memory |    1556 KB |   28812 KB |   14701 MB |   14699 MB |
-|       from large pool |       0 KB |   27291 KB |   14341 MB |   14341 MB |
-|       from small pool |    1556 KB |    2044 KB |     359 MB |     357 MB |
+| Non-releasable memory |   32474 KB |   55554 KB |   11147 MB |   11115 MB |
+|       from large pool |   30480 KB |   53628 KB |   11130 MB |   11100 MB |
+|       from small pool |    1994 KB |    2044 KB |      16 MB |      14 MB |
 |---------------------------------------------------------------------------|
-| Allocations           |      24    |      36    |    7742    |    7718    |
-|       from large pool |       0    |       4    |    2084    |    2084    |
-|       from small pool |      24    |      32    |    5658    |    5634    |
+| Allocations           |      32    |      45    |    5091    |    5059    |
+|       from large pool |       8    |      14    |    2136    |    2128    |
+|       from small pool |      24    |      32    |    2955    |    2931    |
 |---------------------------------------------------------------------------|
-| Active allocs         |      24    |      36    |    7742    |    7718    |
-|       from large pool |       0    |       4    |    2084    |    2084    |
-|       from small pool |      24    |      32    |    5658    |    5634    |
+| Active allocs         |      32    |      45    |    5091    |    5059    |
+|       from large pool |       8    |      14    |    2136    |    2128    |
+|       from small pool |      24    |      32    |    2955    |    2931    |
 |---------------------------------------------------------------------------|
-| GPU reserved segments |       4    |       4    |       4    |       0    |
-|       from large pool |       2    |       2    |       2    |       0    |
-|       from small pool |       2    |       2    |       2    |       0    |
+| GPU reserved segments |       6    |       6    |       6    |       0    |
+|       from large pool |       5    |       5    |       5    |       0    |
+|       from small pool |       1    |       1    |       1    |       0    |
 |---------------------------------------------------------------------------|
-| Non-releasable allocs |       4    |       8    |    3683    |    3679    |
-|       from large pool |       0    |       3    |    1635    |    1635    |
-|       from small pool |       4    |       6    |    2048    |    2044    |
+| Non-releasable allocs |       6    |       9    |    1692    |    1686    |
+|       from large pool |       3    |       6    |     883    |     880    |
+|       from small pool |       3    |       5    |     809    |     806    |
 |---------------------------------------------------------------------------|
 | Oversize allocations  |       0    |       0    |       0    |       0    |
 |---------------------------------------------------------------------------|

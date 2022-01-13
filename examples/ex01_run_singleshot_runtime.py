@@ -57,7 +57,7 @@ def model_train_test(data_path, use_gpu, snap_nr):
     test_parameters.model.layer_activations = ["ReLU"]
 
     # Specify the training parameters.
-    test_parameters.running.max_number_epochs = 20
+    test_parameters.running.max_number_epochs = int(-10 * snap_nr + 40)
     test_parameters.running.mini_batch_size = 3000
     test_parameters.running.learning_rate = 0.00001
     test_parameters.running.trainingtype = "Adam"
@@ -103,7 +103,7 @@ def model_train_test(data_path, use_gpu, snap_nr):
     ####################
     t0_netsetup = time.time()
     test_parameters.model.layer_sizes = [data_handler.get_input_dimension(),
-                                        400, 400,
+                                        400, 800, 400,
                                         data_handler.get_output_dimension()]
 
     # Setup models and trainer.
@@ -125,6 +125,7 @@ def model_train_test(data_path, use_gpu, snap_nr):
     # TESTING
     # Pass the first test set snapshot (the test snapshot).
     ####################
+    test_parameters.running.mini_batch_size = 8000 # to forward the entire snap
     t0_testsetup = time.time()
     tester = mala.Tester(test_parameters, test_network, data_handler)
     t1_testsetup = time.time()

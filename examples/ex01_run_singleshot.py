@@ -34,7 +34,7 @@ test_parameters.data.output_rescaling_type = "normal"
 test_parameters.model.layer_activations = ["ReLU"]
 
 # Specify the training parameters.
-test_parameters.running.max_number_epochs = 20
+test_parameters.running.max_number_epochs = 10
 test_parameters.running.mini_batch_size = 3000
 test_parameters.running.learning_rate = 0.00001
 test_parameters.running.trainingtype = "Adam"
@@ -75,7 +75,7 @@ printout("Read data: DONE.")
 ####################
 
 test_parameters.model.layer_sizes = [data_handler.get_input_dimension(),
-                                     400, 400,
+                                     400, 800, 400,
                                      data_handler.get_output_dimension()]
 
 # Setup models and trainer.
@@ -104,7 +104,7 @@ test_parameters.show()
 # TESTING
 # Pass the first test set snapshot (the test snapshot).
 ####################
-
+test_parameters.running.mini_batch_size = 8000 # to forward the entire snap
 tester = mala.Tester(test_parameters, test_network, data_handler)
 actual_density, predicted_density = tester.test_snapshot(0)
 print(torch.cuda.memory_summary()) # print the cuda memory usage

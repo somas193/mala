@@ -41,7 +41,7 @@ with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
     ####################
 
     test_parameters = mala.Parameters()
-    test_parameters.use_gpu = False
+    test_parameters.use_gpu = True
     test_parameters.manual_seed = seed
     # Currently, the splitting in training, validation and test set are
     # done on a "by snapshot" basis. Specify how this is
@@ -98,7 +98,7 @@ with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
         ####################
 
         test_parameters.model.layer_sizes = [data_handler.get_input_dimension(),
-                                             400, 400,
+                                             400, 800, 400,
                                              data_handler.get_output_dimension()]
 
         # Setup models and trainer.
@@ -112,6 +112,7 @@ with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
         ####################
         test_trainer.train_model()
 
+    test_parameters.running.mini_batch_size = 8000 # to forward the entire snap
     with record_function("tester_setup"):
         ####################
         # TESTING
