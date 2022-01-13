@@ -57,7 +57,7 @@ def model_train_test(data_path, use_gpu, snap_nr):
     test_parameters.model.layer_activations = ["ReLU"]
 
     # Specify the training parameters.
-    test_parameters.running.max_number_epochs = int(-10 * snap_nr + 40)
+    test_parameters.running.max_number_epochs = int(30 / snap_nr)
     test_parameters.running.mini_batch_size = 3000
     test_parameters.running.learning_rate = 0.00001
     test_parameters.running.trainingtype = "Adam"
