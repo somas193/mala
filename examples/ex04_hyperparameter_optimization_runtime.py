@@ -1,15 +1,25 @@
+import os
+import platform
 import time
 import statistics
 import itertools
 import random
 import numpy
 import torch
+
+print(os.cpu_count())
+print(f'No. of threads: {torch.get_num_threads()}')
+print(f'Processor: {platform.processor()}')
+print(f'GPU: {torch.cuda.get_device_name()}')
+
 import pickle
 import gc
 import mala
 from mala import printout
 from data_repo_path import get_data_repo_path
 data_path = get_data_repo_path()+"Be2/densities_gp/"
+
+
 
 def seed_all(seed):
     torch.manual_seed(seed)
@@ -20,9 +30,9 @@ def seed_all(seed):
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
     
-seed_all(5476)
+seed_all(3567)
 
-def hypopt_train_test(data_path, use_gpu):
+def hypopt_train_test(data_path, use_gpu=False, snap_nr="1"):
 
     """
     ex04_hyperparameter_optimization.py: Shows how a hyperparameter 
@@ -80,13 +90,21 @@ def hypopt_train_test(data_path, use_gpu):
     inputs_folder = data_path+"inputs_snap/"
     outputs_folder = data_path+"outputs_density/"
     additional_folder = data_path+"additional_info_qeouts/"
+
     data_handler.add_snapshot("snapshot0.in.npy", inputs_folder,
                             "snapshot0.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
-    data_handler.add_snapshot("snapshot1.in.npy", inputs_folder,
-                            "snapshot1.out.npy", outputs_folder, add_snapshot_as="va", output_units="None")
-    data_handler.add_snapshot("snapshot2.in.npy", inputs_folder,
-                            "snapshot2.out.npy", outputs_folder, add_snapshot_as="te",
-                            output_units="None", calculation_output_file=additional_folder+"snapshot2.out")
+    if (snap_nr > 1):
+        data_handler.add_snapshot("snapshot1.in.npy", inputs_folder,
+                                "snapshot1.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
+    if (snap_nr > 2):                            
+        data_handler.add_snapshot("snapshot2.in.npy", inputs_folder,
+                                "snapshot2.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
+                            
+    data_handler.add_snapshot("snapshot3.in.npy", inputs_folder,
+                            "snapshot3.out.npy", outputs_folder, add_snapshot_as="va", output_units="None")
+    data_handler.add_snapshot("snapshot4.in.npy", inputs_folder,
+                            "snapshot4.out.npy", outputs_folder, add_snapshot_as="te",
+                            output_units="None", calculation_output_file=additional_folder+"snapshot4.out")
     data_handler.prepare_data()
     #torch.cuda.synchronize()
     t1_datahandler = time.perf_counter()
@@ -193,11 +211,12 @@ def hypopt_train_test(data_path, use_gpu):
 
 
 dev = ["cpu", "gpu"]
+snaps = ["1", "2", "3"]
 time_types = ["parameters", "datahandler", "sethypparam", "hyp_optim", "netsetup", "nettrain", "infsetup", "inference"]
-total_types = ['_'.join(f) for f in itertools.product(dev, time_types)]
+total_types = ['_'.join(f) for f in itertools.product(dev, snaps, time_types)]
 times = {f: [] for f in total_types}
 
-niter = 80
+niter = 300
 
 for i in range(niter):
     dev_choice = random.choice(dev)
@@ -205,22 +224,24 @@ for i in range(niter):
         use_gpu = False
     if dev_choice == 'gpu':
         use_gpu = True
+
+    snap_nr = random.choice(snaps)
     print('\n##########################')
     print('Iteration no.: ', i+1)    
-    print('Running on: ', dev_choice)
+    print(f'Running on: {dev_choice}, snaps for training: {snap_nr}')
     print('##########################\n')
     
-    t_parameters, t_datahandler, t_sethypparam, t_hypopt, t_netsetup, t_nettrain, t_testsetup, t_testinf = hypopt_train_test(data_path, use_gpu)
-    times[f'{dev_choice}_parameters'].append(t_parameters)
-    times[f'{dev_choice}_datahandler'].append(t_datahandler)
-    times[f'{dev_choice}_sethypparam'].append(t_sethypparam)
-    times[f'{dev_choice}_hyp_optim'].append(t_hypopt)
-    times[f'{dev_choice}_netsetup'].append(t_netsetup)
-    times[f'{dev_choice}_nettrain'].append(t_nettrain)
-    times[f'{dev_choice}_infsetup'].append(t_testsetup)
-    times[f'{dev_choice}_inference'].append(t_testinf)
-    #print(f'{dev_choice}_netsetup : {t_netsetup}')
-    #print(f'{dev_choice}_nettrain : {t_nettrain}')
+    t_parameters, t_datahandler, t_sethypparam, t_hypopt, t_netsetup, t_nettrain, t_testsetup, t_testinf = hypopt_train_test(data_path, use_gpu, int(snap_nr))
+    times[f'{dev_choice}_{snap_nr}_parameters'].append(t_parameters)
+    times[f'{dev_choice}_{snap_nr}_datahandler'].append(t_datahandler)
+    times[f'{dev_choice}_{snap_nr}_sethypparam'].append(t_sethypparam)
+    times[f'{dev_choice}_{snap_nr}_hyp_optim'].append(t_hypopt)
+    times[f'{dev_choice}_{snap_nr}_netsetup'].append(t_netsetup)
+    times[f'{dev_choice}_{snap_nr}_nettrain'].append(t_nettrain)
+    times[f'{dev_choice}_{snap_nr}_infsetup'].append(t_testsetup)
+    times[f'{dev_choice}_{snap_nr}_inference'].append(t_testinf)
+    print(f'{dev_choice}_{snap_nr}_netsetup : {t_netsetup}')
+    print(f'{dev_choice}_{snap_nr}_nettrain : {t_nettrain}')
 
 for name, numbers in times.items():
     print('Item:', name, 'Used', len(numbers), 'times')
