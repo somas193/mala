@@ -85,6 +85,10 @@ class ParametersModel(ParametersBase):
         self.gp_mean = "constant"
         self.kernel = "rbf"
         self.multivariate_distribution = "normal"
+        # For ApproxGP
+        self.variational_dist_type = "cholesky"
+        self.variational_strategy_type = "variational_strategy"
+        self.max_log_likelihood = "elbo"
 
 
 class ParametersDescriptors(ParametersBase):
