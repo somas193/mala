@@ -99,12 +99,11 @@ class ApproxGaussianProcesses(gpytorch.models.ApproximateGP):
     def save_model(self, path_to_file):
         pass
 
-    def train(self):
-        self.likelihood.train()
-        return super(ApproxGaussianProcesses, self).train()
+    def train(self, mode=True):
+        self.likelihood.train(mode=mode)
+        return super(ApproxGaussianProcesses, self).train(mode=mode)
 
     def eval(self):
         self.likelihood.eval()
         return super(ApproxGaussianProcesses, self).eval()
-        
         
