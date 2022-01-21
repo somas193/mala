@@ -4,7 +4,7 @@ from data_repo_path import data_repo_path
 data_path = data_repo_path+"Be2/densities_gp/"
 
 """
-ex13_gaussian_processes_optimization.py: Shows how Gaussian processes can be 
+ex16_approx_gaussian_processes_opt.py: Shows how approximate Gaussian processes can be 
 used to learn the electronic density with MALA. Backend is GPytorch.
 Here, an optimization is performed in the sense that the model (hyper-)
 parameters are optimized. It is similar to ex04 in that regard.
@@ -21,15 +21,14 @@ params.data.output_rescaling_type = "normal"
 params.model.variational_dist_type = "cholesky"
 params.model.variational_strategy_type = "variational_strategy"
 params.model.loss_function_type = "gaussian_likelihood"
-params.model.max_log_likelihood = "elbo"
+params.model.max_log_likelihood = "pll"
 params.model.kernel = "rbf"
-#params.model.kernel = "rbf+linear"
 
 # Specify the training parameters.
-params.running.max_number_epochs = 20
+params.running.max_number_epochs = 5
 
 # This should be 1, and MALA will set it automatically to, if we don't.
-params.running.mini_batch_size = 40
+params.running.mini_batch_size = 2000
 params.running.learning_rate = 0.1
 params.running.trainingtype = "Adam"
 params.targets.target_type = "Density"
@@ -53,8 +52,10 @@ data_handler.add_snapshot("snapshot2.in.npy", inputs_folder,
                           "snapshot2.out.npy", outputs_folder, add_snapshot_as="te",
                           output_units="None", calculation_output_file=additional_folder+"snapshot2.out")
 data_handler.prepare_data()
+#print(data_handler.training_data_inputs.size())
 printout("Read data: DONE.")
 inducing_points = data_handler.get_inducing_points(500)
+#print(inducing_points)
 
 ####################
 # MODEL SETUP

@@ -83,12 +83,12 @@ class ApproxGaussianProcesses(gpytorch.models.ApproximateGP):
         covar_x = self.covar_module(x)
         return self.multivariate_distribution(mean_x, covar_x)
 
-    def calculate_loss(self, output, target):
+    def calculate_loss(self, output, target, nr_train_data):
         if self.params.max_log_likelihood == "elbo":
-            return -gpytorch.mlls.VariationalELBO(self.likelihood, self, num_data=target.size(0))(output, target)
+            return -gpytorch.mlls.VariationalELBO(self.likelihood, self, num_data=nr_train_data)(output, target)
 
         if self.params.max_log_likelihood == "pll":
-            return -gpytorch.mlls.PredictiveLogLikelihood(self.likelihood, self, num_data=target.size(0))(output, target)
+            return -gpytorch.mlls.PredictiveLogLikelihood(self.likelihood, self, num_data=nr_train_data)(output, target)
         
 
     # TODO: implement this.

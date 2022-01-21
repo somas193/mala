@@ -460,7 +460,10 @@ class Trainer(Runner):
     def __process_mini_batch(self, model, input_data, target_data):
         """Process a mini batch."""
         prediction = model(input_data)
-        loss = model.calculate_loss(prediction, target_data)
+        if self.approx_gaussian_processes_used:
+            loss = torch.mean(model.calculate_loss(prediction, target_data, len(self.data.training_data_set)))
+        else:
+            loss = model.calculate_loss(prediction, target_data)
         if model.params.type == "dummy":
             model.tune_model(loss, self.parameters.learning_rate)
             return loss
@@ -506,6 +509,10 @@ class Trainer(Runner):
                         with gpytorch.settings.fast_pred_var(): #gpytorch.settings.max_cg_iterations(5000)
                             prediction = model(x)
                             validation_loss.append(model.calculate_loss(prediction, y)
+                                                   .item())
+                    elif self.approx_gaussian_processes_used:
+                        prediction = model(x)
+                        validation_loss.append(torch.mean(model.calculate_loss(prediction, y, len(self.data.training_data_set)))
                                                    .item())
                     else:
                         prediction = model(x)
