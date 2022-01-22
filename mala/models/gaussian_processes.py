@@ -6,7 +6,7 @@ from mala.common.parameters import ParametersModel
 
 
 class GaussianProcesses(gpytorch.models.ExactGP):
-    def __init__(self, params, data_handler: DataHandler):
+    def __init__(self, params, data_handler: DataHandler, num_gpus=1):
         self.params: ParametersModel = params.model
 
         # if the user has planted a seed (for comparibility purposes) we
@@ -24,9 +24,14 @@ class GaussianProcesses(gpytorch.models.ExactGP):
         if likelihood is None:
             raise Exception("Invalid Likelihood selected.")
 
-        super(GaussianProcesses, self).__init__(data_handler.
-                                                training_data_inputs,
-                                                data_handler.
+        if params.use_gpu:
+            training_data_inputs = data_handler.training_data_inputs.to(torch.device('cuda:0'))
+            training_data_outputs = data_handler.training_data_outputs.to(torch.device('cuda:0'))
+        else:
+            training_data_inputs = data_handler.training_data_inputs
+            training_data_outputs = data_handler.training_data_outputs
+
+        super(GaussianProcesses, self).__init__(training_data_inputs,
                                                 training_data_outputs,
                                                 likelihood)
         # Mean.
@@ -40,15 +45,22 @@ class GaussianProcesses(gpytorch.models.ExactGP):
         # Kernel.
         self.covar_module = None
         if self.params.kernel == "rbf":
-            self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel())
+            base_covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel())
         if self.params.kernel == "linear":
-            self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.LinearKernel())
+            base_covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.LinearKernel())
         if self.params.kernel == "rbf+linear":
-            self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel() + gpytorch.kernels.LinearKernel())
+            base_covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel() + gpytorch.kernels.LinearKernel())
         if self.params.kernel == "polynomial":
-            self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.PolynomialKernel(power=2))
+            base_covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.PolynomialKernel(power=2))
         if self.params.kernel == "cosine":
-            self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.CosineKernel())
+            base_covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.CosineKernel())
+
+        if params.use_gpu and (num_gpus > 1):
+            self.covar_module = gpytorch.kernels.MultiDeviceKernel(base_covar_module, device_ids=range(num_gpus),
+                                                                   output_device=torch.device('cuda:0'))
+            print('Planning to run on {} GPUs.'.format(num_gpus))
+        else:
+            self.covar_module = base_covar_module
 
         if self.covar_module is None:
             raise Exception("Invalid kernel selectded.")
@@ -64,8 +76,8 @@ class GaussianProcesses(gpytorch.models.ExactGP):
         # Once everything is done, we can move the Network on the target
         # device.
         if params.use_gpu:
-            self.likelihood.to('cuda')
-            self.to('cuda')
+            self.likelihood.to(torch.device('cuda:0'))
+            self.to(torch.device('cuda:0'))
 
     def forward(self, x):
         mean_x = self.mean_module(x)
