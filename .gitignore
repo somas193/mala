@@ -1,6 +1,10 @@
 # Ignore dir
 examples/traces/
 
+### Wandb ###
+examples/wandb/
+examples/batchscript.sh
+
 ### VisualStudioCode ###
 .vscode/
 .vscode/*

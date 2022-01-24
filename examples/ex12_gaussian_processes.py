@@ -4,6 +4,11 @@ from mala import printout
 from data_repo_path import data_repo_path
 data_path = data_repo_path+"Be2/densities_gp/"
 
+import wandb
+import os
+os.environ['WANDB_API_KEY'] = '9b066ddb4f419d1390f7506cdc05a1bb2170e2bb'
+wandb.init(project="mala", entity="harisankar95")
+
 """
 ex12_gassian_processes.py: Shows how Gaussian processes can be used
 to learn the electronic density with MALA. Backend is GPytorch.
@@ -62,9 +67,10 @@ printout("Read data: DONE.")
 # Gaussian Processes do not have to be trained in order
 # to captue the trainint data.
 ####################
-params.model.kernel = "rbf+linear"
-model = mala.GaussianProcesses(params, data_handler)
-
+params.model.kernel = "rbf"
+num_gpus = 3
+model = mala.GaussianProcesses(params, data_handler, num_gpus=num_gpus)
+printout("Model Setup: DONE.")
 ####################
 # TESTING
 # Pass the first test set snapshot (the test snapshot).
@@ -72,7 +78,10 @@ model = mala.GaussianProcesses(params, data_handler)
 
 tester = mala.Tester(params, model, data_handler)
 actual_density, predicted_density = tester.test_snapshot(0)
-print(torch.cuda.memory_summary()) # print the cuda memory usage
+
+for dev in range(num_gpus):
+	print(torch.cuda.memory_summary(f'cuda:{dev}')) # print the cuda memory usage
+	
 # First test snapshot --> 2nd in total
 data_handler.target_calculator.read_additional_calculation_data("qe.out", data_handler.get_snapshot_calculation_output(4))
 actual_number_of_electrons = data_handler.target_calculator.get_number_of_electrons(actual_density)
