@@ -1,4 +1,5 @@
 import mala
+import scipy
 from mala import printout
 from data_repo_path import data_repo_path
 data_path = data_repo_path+"Be2/densities_gp/"
@@ -11,7 +12,7 @@ parameters are optimized. It is similar to ex04 in that regard.
 """
 
 params = mala.Parameters()
-params.use_gpu = False
+params.use_gpu = True
 
 # Specify the data scaling.
 params.data.input_rescaling_type = "feature-wise-standard"
@@ -21,14 +22,14 @@ params.data.output_rescaling_type = "normal"
 params.model.variational_dist_type = "cholesky"
 params.model.variational_strategy_type = "variational_strategy"
 params.model.loss_function_type = "gaussian_likelihood"
-params.model.max_log_likelihood = "pll"
+params.model.max_log_likelihood = "elbo"
 params.model.kernel = "rbf"
 
 # Specify the training parameters.
-params.running.max_number_epochs = 5
+params.running.max_number_epochs = 20
 
 # This should be 1, and MALA will set it automatically to, if we don't.
-params.running.mini_batch_size = 2000
+params.running.mini_batch_size = 1000
 params.running.learning_rate = 0.1
 params.running.trainingtype = "Adam"
 params.targets.target_type = "Density"
@@ -81,6 +82,8 @@ printout("Training: DONE.")
 
 tester = mala.Tester(params, model, data_handler)
 actual_density, predicted_density = tester.test_snapshot(0)
+density_similarity = scipy.spatial.distance.cosine(actual_density, predicted_density)
+print(f'\nCosine distance between actual and predicted density: {density_similarity}\n')
 # First test snapshot --> 2nd in total
 data_handler.target_calculator.read_additional_calculation_data("qe.out", data_handler.get_snapshot_calculation_output(2))
 actual_number_of_electrons = data_handler.target_calculator.get_number_of_electrons(actual_density)

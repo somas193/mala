@@ -22,6 +22,8 @@ class ApproxGaussianProcesses(gpytorch.models.ApproximateGP):
             variational_distribution = gpytorch.variational.CholeskyVariationalDistribution(inducing_points.size(0))
         if self.params.variational_dist_type == "mean_field":
             variational_distribution = gpytorch.variational.MeanFieldVariationalDistribution(inducing_points.size(0))
+        if self.params.variational_dist_type == "delta":
+            variational_distribution = gpytorch.variational.DeltaVariationalDistribution(inducing_points.size(0))
         
         if variational_distribution is None:
             raise Exception("Invalid Variational distribution selected.")
