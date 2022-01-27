@@ -3,7 +3,8 @@ examples/traces/
 
 ### Wandb ###
 examples/wandb/
-examples/batchscript.sh
+examples/batchscript*.sh
+examples/GP_runtime_gpuscaling_mem.txt
 
 ### VisualStudioCode ###
 .vscode/
