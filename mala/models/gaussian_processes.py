@@ -54,6 +54,8 @@ class GaussianProcesses(gpytorch.models.ExactGP):
             base_covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.PolynomialKernel(power=2))
         if self.params.kernel == "cosine":
             base_covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.CosineKernel())
+        if self.params.kernel == "matern":
+            base_covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.MaternKernel())
 
         if params.use_gpu and (num_gpus > 1):
             self.covar_module = gpytorch.kernels.MultiDeviceKernel(base_covar_module, device_ids=range(num_gpus),

@@ -1,5 +1,5 @@
 RAM: 376GB
-CPU: 16 cores on Intel(R) Xeon(R) Gold 6136 CPU @ 3.00GHz
+CPU: 24 cores/threads on Intel(R) Xeon(R) Gold 6136 CPU @ 3.00GHz
 GPU: NVIDIA Tesla V100 
 
 #########################################

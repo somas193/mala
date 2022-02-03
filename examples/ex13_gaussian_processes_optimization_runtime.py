@@ -152,7 +152,7 @@ def hypopt_train_test(data_path, use_gpu=False, kernel_choice="rbf", snap_nr="1"
 
 dev = ["cpu", "gpu"]
 snaps = ["1", "2", "3"]
-kernels = ["linear", "rbf", "rbf+linear"]
+kernels = ["linear", "rbf", "matern"]
 time_types = ["parameters", "datahandler", "netsetup", "hyp_optim", "infsetup", "inference"]
 total_types = ['_'.join(f) for f in itertools.product(dev, kernels, snaps, time_types)]
 times = {f: [] for f in total_types}

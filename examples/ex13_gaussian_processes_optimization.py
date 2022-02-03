@@ -1,4 +1,5 @@
 import mala
+import torch
 from mala import printout
 from data_repo_path import data_repo_path
 data_path = data_repo_path+"Be2/densities_gp/"
@@ -11,7 +12,7 @@ parameters are optimized. It is similar to ex04 in that regard.
 """
 
 params = mala.Parameters()
-params.use_gpu = False
+params.use_gpu = True
 
 # Specify the data scaling.
 params.data.input_rescaling_type = "feature-wise-standard"
@@ -19,7 +20,7 @@ params.data.output_rescaling_type = "normal"
 
 # Specify the used activation function.
 params.model.loss_function_type = "gaussian_likelihood"
-params.model.kernel = "linear"
+params.model.kernel = "rbf"
 #params.model.kernel = "rbf+linear"
 
 # Specify the training parameters.
@@ -43,11 +44,15 @@ additional_folder = data_path+"additional_info_qeouts/"
 # Add a snapshot we want to use in to the list.
 data_handler.add_snapshot("snapshot0.in.npy", inputs_folder,
                           "snapshot0.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
-data_handler.add_snapshot("snapshot1.in.npy", inputs_folder,
-                          "snapshot1.out.npy", outputs_folder, add_snapshot_as="va", output_units="None")
-data_handler.add_snapshot("snapshot2.in.npy", inputs_folder,
-                          "snapshot2.out.npy", outputs_folder, add_snapshot_as="te",
-                          output_units="None", calculation_output_file=additional_folder+"snapshot2.out")
+# data_handler.add_snapshot("snapshot1.in.npy", inputs_folder,
+#                           "snapshot1.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
+# data_handler.add_snapshot("snapshot2.in.npy", inputs_folder,
+#                           "snapshot2.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
+data_handler.add_snapshot("snapshot3.in.npy", inputs_folder,
+                          "snapshot3.out.npy", outputs_folder, add_snapshot_as="va", output_units="None")
+data_handler.add_snapshot("snapshot4.in.npy", inputs_folder,
+                          "snapshot4.out.npy", outputs_folder, add_snapshot_as="te",
+                          output_units="None", calculation_output_file=additional_folder+"snapshot4.out")
 data_handler.prepare_data(transpose_data=True)
 printout("Read data: DONE.")
 

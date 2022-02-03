@@ -54,7 +54,7 @@ def hypopt_train_test(data_path, use_gpu=False, kernel_choice="rbf", snap_nr=1, 
     params.model.variational_dist_type = "cholesky"
     params.model.variational_strategy_type = "variational_strategy"
     params.model.loss_function_type = "gaussian_likelihood"
-    params.model.max_log_likelihood = "elbo"
+    params.model.max_log_likelihood = "pll"
     params.model.kernel = kernel_choice
 
     # Specify the training parameters.
@@ -153,9 +153,9 @@ def hypopt_train_test(data_path, use_gpu=False, kernel_choice="rbf", snap_nr=1, 
 
 dev = ["cpu", "gpu"]
 snaps = ["1", "2", "3"]
-kernels = ["linear", "rbf", "matern"]
+inducing_pts = ["20", "200", "2000"]
 time_types = ["maxmem", "parameters", "datahandler", "netsetup", "hyp_optim", "infsetup", "inference"]
-total_types = ['_'.join(f) for f in itertools.product(dev, kernels, snaps, time_types)]
+total_types = ['_'.join(f) for f in itertools.product(dev, inducing_pts, snaps, time_types)]
 times = {f: [] for f in total_types}
 
 niter = 900
@@ -167,20 +167,20 @@ for i in range(niter):
     if dev_choice == 'gpu':
         use_gpu = True
     snap_nr = random.choice(snaps)
-    kernel_choice = random.choice(kernels)
+    pts_choice = random.choice(inducing_pts)
     print('\n##########################')
     print('Iteration no.: ', i+1)    
-    print(f'Running on: {dev_choice}, kernel: {kernel_choice}, snaps for training: {snap_nr}')
+    print(f'Running on: {dev_choice}, inducing points: {pts_choice}, snaps for training: {snap_nr}')
     print('##########################\n')
     
-    maxmem, t_parameters, t_datahandler, t_netsetup, t_hypopt, t_testsetup, t_testinf = hypopt_train_test(data_path, use_gpu, kernel_choice, int(snap_nr))
-    times[f'{dev_choice}_{kernel_choice}_{snap_nr}_maxmem'].append(maxmem)
-    times[f'{dev_choice}_{kernel_choice}_{snap_nr}_parameters'].append(t_parameters)
-    times[f'{dev_choice}_{kernel_choice}_{snap_nr}_datahandler'].append(t_datahandler)
-    times[f'{dev_choice}_{kernel_choice}_{snap_nr}_netsetup'].append(t_netsetup)
-    times[f'{dev_choice}_{kernel_choice}_{snap_nr}_hyp_optim'].append(t_hypopt)
-    times[f'{dev_choice}_{kernel_choice}_{snap_nr}_infsetup'].append(t_testsetup)
-    times[f'{dev_choice}_{kernel_choice}_{snap_nr}_inference'].append(t_testinf)
+    maxmem, t_parameters, t_datahandler, t_netsetup, t_hypopt, t_testsetup, t_testinf = hypopt_train_test(data_path, use_gpu, snap_nr=int(snap_nr), ind_pts=int(pts_choice))
+    times[f'{dev_choice}_{pts_choice}_{snap_nr}_maxmem'].append(maxmem)
+    times[f'{dev_choice}_{pts_choice}_{snap_nr}_parameters'].append(t_parameters)
+    times[f'{dev_choice}_{pts_choice}_{snap_nr}_datahandler'].append(t_datahandler)
+    times[f'{dev_choice}_{pts_choice}_{snap_nr}_netsetup'].append(t_netsetup)
+    times[f'{dev_choice}_{pts_choice}_{snap_nr}_hyp_optim'].append(t_hypopt)
+    times[f'{dev_choice}_{pts_choice}_{snap_nr}_infsetup'].append(t_testsetup)
+    times[f'{dev_choice}_{pts_choice}_{snap_nr}_inference'].append(t_testinf)
     #print(f'{dev_choice}_netsetup : {t_netsetup}')
     #print(f'{dev_choice}_nettrain : {t_nettrain}')
 
@@ -190,5 +190,5 @@ for name, numbers in times.items():
     print('\tMEAN  ', statistics.mean(numbers))
     print('\tSTDEV ', statistics.stdev(numbers))
 
-with open('ApproxGP_hypopt_runtime.pkl', 'wb') as f:
+with open('ApproxGP_hypopt_runtime4.pkl', 'wb') as f:
     pickle.dump(times, f)

@@ -1,5 +1,6 @@
 import mala
 import scipy
+import torch
 from mala import printout
 from data_repo_path import data_repo_path
 data_path = data_repo_path+"Be2/densities_gp/"
