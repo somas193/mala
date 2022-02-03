@@ -4,11 +4,6 @@ from mala import printout
 from data_repo_path import data_repo_path
 data_path = data_repo_path+"Be2/densities_gp/"
 
-import wandb
-import os
-os.environ['WANDB_API_KEY'] = '9b066ddb4f419d1390f7506cdc05a1bb2170e2bb'
-wandb.init(project="mala", entity="harisankar95")
-
 """
 ex12_gassian_processes.py: Shows how Gaussian processes can be used
 to learn the electronic density with MALA. Backend is GPytorch.

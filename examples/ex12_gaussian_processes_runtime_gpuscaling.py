@@ -24,9 +24,10 @@ seed = 14012022
 random.seed(seed)
 
 
-def model_train_test(data_path, use_gpu, snap_nr):
+def model_train_test(data_path, use_gpu, gpu_nr):
     
     seed_all(seed)
+    torch.cuda.reset_peak_memory_stats()
 
     """
     ex12_gassian_processes.py: Shows how Gaussian processes can be used
@@ -61,7 +62,6 @@ def model_train_test(data_path, use_gpu, snap_nr):
     # DATA
     # Add and prepare snapshots for training.
     ####################
-    t0_datahandler = time.time()
     data_handler = mala.DataHandler(params)
     inputs_folder = data_path+"inputs_snap/"
     outputs_folder = data_path+"outputs_density/"
@@ -69,12 +69,10 @@ def model_train_test(data_path, use_gpu, snap_nr):
     # Add a snapshot we want to use in to the list.
     data_handler.add_snapshot("snapshot0.in.npy", inputs_folder,
                             "snapshot0.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
-    if (snap_nr > 1):
-        data_handler.add_snapshot("snapshot1.in.npy", inputs_folder,
-                                "snapshot1.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
-    if (snap_nr > 2):                            
-        data_handler.add_snapshot("snapshot2.in.npy", inputs_folder,
-                                "snapshot2.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
+    data_handler.add_snapshot("snapshot1.in.npy", inputs_folder,
+                            "snapshot1.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
+    data_handler.add_snapshot("snapshot2.in.npy", inputs_folder,
+                            "snapshot2.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
                             
     data_handler.add_snapshot("snapshot3.in.npy", inputs_folder,
                             "snapshot3.out.npy", outputs_folder, add_snapshot_as="va", output_units="None")
@@ -82,8 +80,6 @@ def model_train_test(data_path, use_gpu, snap_nr):
                             "snapshot4.out.npy", outputs_folder, add_snapshot_as="te",
                             output_units="None", calculation_output_file=additional_folder+"snapshot4.out")
     data_handler.prepare_data(transpose_data=True)
-    t1_datahandler = time.time()
-    t_datahandler = t1_datahandler - t0_datahandler
 
     ####################
     # MODEL SETUP
@@ -92,7 +88,7 @@ def model_train_test(data_path, use_gpu, snap_nr):
     # to captue the trainint data.
     ####################
     t0_netsetup = time.time()
-    model = mala.GaussianProcesses(params, data_handler)
+    model = mala.GaussianProcesses(params, data_handler, num_gpus=gpu_nr)
     t1_netsetup = time.time()
     t_netsetup = t1_netsetup - t0_netsetup
 
@@ -109,14 +105,6 @@ def model_train_test(data_path, use_gpu, snap_nr):
     actual_density, predicted_density = tester.test_snapshot(0)
     t1_testinf = time.time()
     t_testinf = t1_testinf - t0_testinf
-    
-    for _ in range(8):
-        actual_density, predicted_density = tester.test_snapshot(0)
-        
-    t0_testinf10 = time.time()
-    actual_density, predicted_density = tester.test_snapshot(0)
-    t1_testinf10 = time.time()
-    t_testinf10 = t1_testinf10 - t0_testinf10
 
     # Do some cleanup
     del actual_density, predicted_density, tester, model, data_handler, params
@@ -124,34 +112,38 @@ def model_train_test(data_path, use_gpu, snap_nr):
     torch.cuda.empty_cache()
     #print(torch.cuda.memory_summary()) #to make sure that nothing is left on gpu
     
-    return t_datahandler, t_netsetup, t_testsetup, t_testinf, t_testinf10
+    dev_mem_usage = []
+    for dev_nr in range(gpu_nr):
+        dev_mem_usage.append(torch.cuda.max_memory_allocated(f'cuda:{dev_nr}'))
+    
+    return torch.cuda.max_memory_allocated('cuda:0'), t_netsetup, t_testsetup, t_testinf, dev_mem_usage
 
-dev = ["cpu", "gpu"]
-snaps = ["1", "2", "3"]
-time_types = ["datahandler", "netsetup", "infsetup", "inference", "inference10"]
-total_types = ['_'.join(f) for f in itertools.product(dev, snaps, time_types)]
+dev = ["gpu"]
+gpus = ["1", "2", "3"]
+time_types = ["maxmem", "netsetup", "infsetup", "inference"]
+total_types = ['_'.join(f) for f in itertools.product(dev, gpus, time_types)]
 times = {f: [] for f in total_types}
+mem_usage_array = numpy.zeros((3, 3))
 
-niter = 600
+niter = 100
 
 for i in range(niter):
-    dev_choice = random.choice(dev)
-    if dev_choice == 'cpu':
-        use_gpu = False
-    if dev_choice == 'gpu':
-        use_gpu = True
+    dev_choice = 'gpu'
+    use_gpu = True
 
-    snap_nr = random.choice(snaps)
-    print(f'\tRunning on: {dev_choice}, snaps for training: {snap_nr}')
+    gpu_nr = random.choice(gpus)
+    print(f'\tRunning on: {dev_choice}, gpus for training: {gpu_nr}')
     
-    t_datahandler, t_netsetup, t_testsetup, t_testinf, t_testinf10 = model_train_test(data_path, use_gpu, int(snap_nr))
-    times[f'{dev_choice}_{snap_nr}_datahandler'].append(t_datahandler)
-    times[f'{dev_choice}_{snap_nr}_netsetup'].append(t_netsetup)
-    times[f'{dev_choice}_{snap_nr}_infsetup'].append(t_testsetup)
-    times[f'{dev_choice}_{snap_nr}_inference'].append(t_testinf)
-    times[f'{dev_choice}_{snap_nr}_inference10'].append(t_testinf10)
-    #print(f'{dev_choice}_{snap_nr}_netsetup : {t_netsetup}')
-    #print(f'{dev_choice}_{snap_nr}_inference : {t_testinf}')
+    maxmem, t_netsetup, t_testsetup, t_testinf, dev_mem_usage = model_train_test(data_path, use_gpu, int(gpu_nr))
+    times[f'{dev_choice}_{gpu_nr}_maxmem'].append(maxmem)
+    times[f'{dev_choice}_{gpu_nr}_netsetup'].append(t_netsetup)
+    times[f'{dev_choice}_{gpu_nr}_infsetup'].append(t_testsetup)
+    times[f'{dev_choice}_{gpu_nr}_inference'].append(t_testinf)
+    #print(f'{dev_choice}_{gpu_nr}_netsetup : {t_netsetup}')
+    #print(f'{dev_choice}_{gpu_nr}_inference : {t_testinf}')
+    
+    for j in range(int(gpu_nr)):
+        mem_usage_array[int(gpu_nr) - 1][j] = dev_mem_usage[j]
 
 for name, numbers in times.items():
     print('Item:', name, 'Used', len(numbers), 'times')
@@ -159,5 +151,7 @@ for name, numbers in times.items():
     print('\tMEAN  ', statistics.mean(numbers))
     print('\tSTDEV ', statistics.stdev(numbers))
 
-with open('GP_runtime.pkl', 'wb') as f:
+with open('GP_runtime_gpuscaling.pkl', 'wb') as f:
     pickle.dump(times, f)
+
+numpy.savetxt('GP_runtime_gpuscaling_mem.txt', mem_usage_array)
