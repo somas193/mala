@@ -1,3 +1,4 @@
+import torch
 import mala
 from mala import printout
 from data_repo_path import data_repo_path
@@ -17,6 +18,8 @@ from *.npy files.
 ####################
 
 test_parameters = mala.Parameters()
+test_parameters.use_gpu = True
+test_parameters.manual_seed = 14012022
 # Currently, the splitting in training, validation and test set are
 # done on a "by snapshot" basis. Specify how this is
 # done by providing a list containing entries of the form
@@ -31,8 +34,8 @@ test_parameters.data.output_rescaling_type = "normal"
 test_parameters.model.layer_activations = ["ReLU"]
 
 # Specify the training parameters.
-test_parameters.running.max_number_epochs = 20
-test_parameters.running.mini_batch_size = 40
+test_parameters.running.max_number_epochs = 10
+test_parameters.running.mini_batch_size = 3000
 test_parameters.running.learning_rate = 0.00001
 test_parameters.running.trainingtype = "Adam"
 test_parameters.targets.target_type = "Density"
@@ -48,13 +51,19 @@ data_handler = mala.DataHandler(test_parameters)
 inputs_folder = data_path+"inputs_snap/"
 outputs_folder = data_path+"outputs_density/"
 additional_folder = data_path+"additional_info_qeouts/"
+
 data_handler.add_snapshot("snapshot0.in.npy", inputs_folder,
                           "snapshot0.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
 data_handler.add_snapshot("snapshot1.in.npy", inputs_folder,
-                          "snapshot1.out.npy", outputs_folder, add_snapshot_as="va", output_units="None")
+                          "snapshot1.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
 data_handler.add_snapshot("snapshot2.in.npy", inputs_folder,
-                          "snapshot2.out.npy", outputs_folder, add_snapshot_as="te",
-                          output_units="None", calculation_output_file=additional_folder+"snapshot2.out")
+                          "snapshot2.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
+                          
+data_handler.add_snapshot("snapshot3.in.npy", inputs_folder,
+                          "snapshot3.out.npy", outputs_folder, add_snapshot_as="va", output_units="None")
+data_handler.add_snapshot("snapshot4.in.npy", inputs_folder,
+                          "snapshot4.out.npy", outputs_folder, add_snapshot_as="te",
+                          output_units="None", calculation_output_file=additional_folder+"snapshot4.out")
 data_handler.prepare_data()
 printout("Read data: DONE.")
 
@@ -66,7 +75,7 @@ printout("Read data: DONE.")
 ####################
 
 test_parameters.model.layer_sizes = [data_handler.get_input_dimension(),
-                                     100,
+                                     400, 800, 400,
                                      data_handler.get_output_dimension()]
 
 # Setup models and trainer.
@@ -90,3 +99,17 @@ printout("Training: DONE.")
 
 printout("Parameters used for this experiment:")
 test_parameters.show()
+
+####################
+# TESTING
+# Pass the first test set snapshot (the test snapshot).
+####################
+test_parameters.running.mini_batch_size = 8000 # to forward the entire snap
+tester = mala.Tester(test_parameters, test_network, data_handler)
+actual_density, predicted_density = tester.test_snapshot(0)
+print(torch.cuda.memory_summary()) # print the cuda memory usage
+# First test snapshot --> 2nd in total
+data_handler.target_calculator.read_additional_calculation_data("qe.out", data_handler.get_snapshot_calculation_output(4))
+actual_number_of_electrons = data_handler.target_calculator.get_number_of_electrons(actual_density)
+predicted_number_of_electrons = data_handler.target_calculator.get_number_of_electrons(predicted_density)
+printout(f"actual_number_of_electrons: {actual_number_of_electrons}, predicted_number_of_electrons: {predicted_number_of_electrons}")

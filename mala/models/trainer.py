@@ -1,4 +1,5 @@
 """Trainer class for training a models."""
+from gpytorch.settings import _fast_solves
 from mala.datahandling.data_handler import DataHandler
 from mala.datahandling.data_scaler import DataScaler
 from mala.common.parameters import Parameters
@@ -6,6 +7,7 @@ from mala.models.gaussian_processes import GaussianProcesses
 import os
 import numpy as np
 import torch
+import gpytorch
 from torch import optim
 from torch.utils.data import DataLoader
 from mala.common.parameters import printout
@@ -458,10 +460,19 @@ class Trainer(Runner):
     def __process_mini_batch(self, model, input_data, target_data):
         """Process a mini batch."""
         prediction = model(input_data)
-        loss = model.calculate_loss(prediction, target_data)
+        if self.approx_gaussian_processes_used:
+            loss = torch.mean(model.calculate_loss(prediction, target_data, len(self.data.training_data_set)))
+        else:
+            loss = model.calculate_loss(prediction, target_data)
         if model.params.type == "dummy":
             model.tune_model(loss, self.parameters.learning_rate)
             return loss
+        # elif self.gaussian_processes_used:
+        #     with gpytorch.settings.max_cg_iterations(2000):
+        #         loss.backward()
+        #         self.optimizer.step()
+        #         self.optimizer.zero_grad()
+        #         return loss.item()
         else:
             loss.backward()
             self.optimizer.step()
@@ -494,9 +505,19 @@ class Trainer(Runner):
                     if self.parameters_full.use_gpu:
                         x = x.to('cuda')
                         y = y.to('cuda')
-                    prediction = model(x)
-                    validation_loss.append(model.calculate_loss(prediction, y)
-                                           .item())
+                    if self.gaussian_processes_used and self.parameters_full.use_fast_pred_var:
+                        with gpytorch.settings.fast_pred_var(): #gpytorch.settings.max_cg_iterations(5000)
+                            prediction = model(x)
+                            validation_loss.append(model.calculate_loss(prediction, y)
+                                                   .item())
+                    elif self.approx_gaussian_processes_used:
+                        prediction = model(x)
+                        validation_loss.append(torch.mean(model.calculate_loss(prediction, y, len(self.data.training_data_set)))
+                                                   .item())
+                    else:
+                        prediction = model(x)
+                        validation_loss.append(model.calculate_loss(prediction, y)
+                                               .item())
 
             return np.mean(validation_loss)
         elif validation_type == "band_energy":
