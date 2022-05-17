@@ -2,6 +2,7 @@
 from .ldos import LDOS
 from .dos import DOS
 from .density import Density
+from .energy_density import EnergyDensity
 
 
 def TargetInterface(params):
@@ -24,5 +25,7 @@ def TargetInterface(params):
         return DOS(params)
     elif params.targets.target_type == 'Density':
         return Density(params)
+    elif params.targets.target_type == 'Energy density':
+        return EnergyDensity(params)
     else:
         raise Exception("Unknown type of target parser requested.")

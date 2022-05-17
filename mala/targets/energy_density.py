@@ -1,4 +1,4 @@
-"""Electronic density calculation class."""
+"""Energy density calculation class."""
 from .target_base import TargetBase
 from .calculation_helpers import *
 from .cube_parser import read_cube
@@ -18,7 +18,7 @@ except ModuleNotFoundError:
 
 
 class EnergyDensity(TargetBase):
-    """Postprocessing / parsing functions for the electronic density.
+    """Postprocessing / parsing functions for the energy density.
 
     Parameters
     ----------
@@ -31,7 +31,7 @@ class EnergyDensity(TargetBase):
     def __init__(self, params):
         super(EnergyDensity, self).__init__(params)
         # We operate on a per gridpoint basis. Per gridpoint,
-        # there is one value for the density (spin-unpolarized calculations).
+        # there is one value for the energy density.
         self.target_length = 1
 
     @staticmethod
@@ -57,11 +57,11 @@ class EnergyDensity(TargetBase):
         if in_units == "None":
             return array
         else:
-            raise Exception("Unsupported unit for electronic density.")
+            raise Exception("Unsupported unit for energy density.")
 
     def read_from_cube(self, file_name, directory, units=None):
         """
-        Read the density data from a cube file.
+        Read the energy density data from a cube file.
 
         Parameters
         ----------
@@ -72,20 +72,34 @@ class EnergyDensity(TargetBase):
             Directory containing the cube file.
 
         units : string
-            Units the density is saved in. Usually none.
+            Units the energy density is saved in. Usually none.
         """
         printout("Reading density from .cube file in ", directory)
         data, meta = read_cube(directory + file_name)
         return data
 
-    def get_entropy_contribution(self, energy_density_data):
+    def get_entropy_contribution(self, energy_density_data, grid_spacing_bohr=None,
+                                integration_method="summation"):
         """
         Calculate the entropy contribution to the total energy.
 
         Parameters
         ----------
         energy_density_data : numpy.array
-            Energy density data as numpy array.
+            Energy density data as numpy array. Has to either be of the form
+            gridpoints or gridx x gridy x gridz.
+        
+        grid_spacing_bohr : float
+            Grid spacing (in Bohr) used to construct this grid. As of now,
+            only equidistant grids are supported.
+
+        integration_method : str
+            Integration method used to integrate density on the grid.
+            Currently supported:
+
+            - "trapz" for trapezoid method
+            - "simps" for Simpson method.
+            - "summation" for summation and scaling of the values (recommended)
 
         Returns
         -------
@@ -94,3 +108,66 @@ class EnergyDensity(TargetBase):
         """
         # @SOM: Here the integration has to happen.
         pass
+
+        if grid_spacing_bohr is None:
+            grid_spacing_bohr = self.grid_spacing_Bohr
+
+        # Check input data for correctness.
+        data_shape = np.shape(np.squeeze(energy_density_data))
+        if len(data_shape) != 3:
+            if len(data_shape) != 1:
+                raise Exception("Unknown Energy density shape, cannot calculate "
+                                "the Entropy contribution.")
+            elif integration_method != "summation":
+                raise Exception("If using a 1D density array, you can only"
+                                " use summation as integration method.")
+
+        # We integrate along the three axis in space.
+        # If there is only one point in a certain direction we do not
+        # integrate, but rather reduce in this direction.
+        # Integration over one point leads to zero.
+
+        entropy_contribution = None
+        if integration_method != "summation":
+            entropy_contribution = energy_density_data
+
+            # X
+            if data_shape[0] > 1:
+                entropy_contribution = \
+                    integrate_values_on_spacing(entropy_contribution,
+                                                grid_spacing_bohr, axis=0,
+                                                method=integration_method)
+            else:
+                entropy_contribution =\
+                    np.reshape(entropy_contribution, (data_shape[1],
+                                                     data_shape[2]))
+                entropy_contribution *= grid_spacing_bohr
+
+            # Y
+            if data_shape[1] > 1:
+                entropy_contribution = \
+                    integrate_values_on_spacing(entropy_contribution,
+                                                grid_spacing_bohr, axis=0,
+                                                method=integration_method)
+            else:
+                entropy_contribution = \
+                    np.reshape(entropy_contribution, (data_shape[2]))
+                entropy_contribution *= grid_spacing_bohr
+
+            # Z
+            if data_shape[2] > 1:
+                entropy_contribution = \
+                    integrate_values_on_spacing(entropy_contribution,
+                                                grid_spacing_bohr, axis=0,
+                                                method=integration_method)
+            else:
+                entropy_contribution *= grid_spacing_bohr
+        else:
+            if len(data_shape) == 3:
+                entropy_contribution = np.sum(energy_density_data, axis=(0, 1, 2)) \
+                                      * (grid_spacing_bohr ** 3)
+            if len(data_shape) == 1:
+                entropy_contribution = np.sum(energy_density_data, axis=0) * \
+                                      (grid_spacing_bohr ** 3)
+
+        return entropy_contribution
