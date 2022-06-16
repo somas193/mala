@@ -78,7 +78,100 @@ class EnergyDensity(TargetBase):
         data, meta = read_cube(directory + file_name)
         return data
 
-    def get_entropy_contribution(self, energy_density_data, grid_spacing_bohr=None,
+    def get_integrated_quantities(self, energy_density_data, grid_spacing_bohr=None,
+                             integration_method="summation"):
+        """
+        Integrate quantities defined per grid point to compute band energy, 
+        entropy contribution etc.
+
+        Parameters
+        ----------
+        energy_density_data : numpy.array
+            Energy density data as numpy array. Has to either be of the form
+            gridpoints or gridx x gridy x gridz.
+        
+        grid_spacing_bohr : float
+            Grid spacing (in Bohr) used to construct this grid. As of now,
+            only equidistant grids are supported.
+
+        integration_method : str
+            Integration method used to integrate density on the grid.
+            Currently supported:
+
+            - "trapz" for trapezoid method
+            - "simps" for Simpson method.
+            - "summation" for summation and scaling of the values (recommended)
+
+        Returns
+        -------
+        entropy_contribution/band energy : float
+            
+        """
+
+        if grid_spacing_bohr is None:
+            grid_spacing_bohr = self.grid_spacing_Bohr
+
+        # Check input data for correctness.
+        data_shape = np.shape(np.squeeze(energy_density_data))
+        if len(data_shape) != 3:
+            if len(data_shape) != 1:
+                raise Exception("Unknown Energy density shape, cannot calculate "
+                                "the Entropy contribution.")
+            elif integration_method != "summation":
+                raise Exception("If using a 1D energy_density array, you can only"
+                                " use summation as integration method.")
+
+        # We integrate along the three axis in space.
+        # If there is only one point in a certain direction we do not
+        # integrate, but rather reduce in this direction.
+        # Integration over one point leads to zero.
+
+        physical_quantity = None
+        if integration_method != "summation":
+            physical_quantity = energy_density_data
+
+            # X
+            if data_shape[0] > 1:
+                physical_quantity = \
+                    integrate_values_on_spacing(physical_quantity,
+                                                grid_spacing_bohr, axis=0,
+                                                method=integration_method)
+            else:
+                physical_quantity =\
+                    np.reshape(physical_quantity, (data_shape[1],
+                                                     data_shape[2]))
+                physical_quantity *= grid_spacing_bohr
+
+            # Y
+            if data_shape[1] > 1:
+                physical_quantity = \
+                    integrate_values_on_spacing(physical_quantity,
+                                                grid_spacing_bohr, axis=0,
+                                                method=integration_method)
+            else:
+                physical_quantity = \
+                    np.reshape(physical_quantity, (data_shape[2]))
+                physical_quantity *= grid_spacing_bohr
+
+            # Z
+            if data_shape[2] > 1:
+                physical_quantity = \
+                    integrate_values_on_spacing(physical_quantity,
+                                                grid_spacing_bohr, axis=0,
+                                                method=integration_method)
+            else:
+                physical_quantity *= grid_spacing_bohr
+        else:
+            if len(data_shape) == 3:
+                physical_quantity = np.sum(energy_density_data, axis=(0, 1, 2)) \
+                                      * (grid_spacing_bohr ** 3)
+            if len(data_shape) == 1:
+                physical_quantity = np.sum(energy_density_data, axis=0) * \
+                                      (grid_spacing_bohr ** 3)
+
+        return physical_quantity 
+
+    '''def get_entropy_contribution(self, energy_density_data, grid_spacing_bohr=None,
                                 integration_method="summation"):
         """
         Calculate the entropy contribution to the total energy.
@@ -106,8 +199,6 @@ class EnergyDensity(TargetBase):
         entropy_contribution : float
             S/beta in eV.
         """
-        # @SOM: Here the integration has to happen.
-        pass
 
         if grid_spacing_bohr is None:
             grid_spacing_bohr = self.grid_spacing_Bohr
@@ -119,7 +210,7 @@ class EnergyDensity(TargetBase):
                 raise Exception("Unknown Energy density shape, cannot calculate "
                                 "the Entropy contribution.")
             elif integration_method != "summation":
-                raise Exception("If using a 1D density array, you can only"
+                raise Exception("If using a 1D energy_density array, you can only"
                                 " use summation as integration method.")
 
         # We integrate along the three axis in space.
@@ -170,4 +261,96 @@ class EnergyDensity(TargetBase):
                 entropy_contribution = np.sum(energy_density_data, axis=0) * \
                                       (grid_spacing_bohr ** 3)
 
-        return entropy_contribution
+        return entropy_contribution 
+
+    def get_band_energy(self, energy_density_data, grid_spacing_bohr=None,
+                        integration_method="summation"):
+        """
+        Calculate the band energy.
+
+        Parameters
+        ----------
+        energy_density_data : numpy.array
+            Energy density data as numpy array. Has to either be of the form
+            gridpoints or gridx x gridy x gridz.
+        
+        grid_spacing_bohr : float
+            Grid spacing (in Bohr) used to construct this grid. As of now,
+            only equidistant grids are supported.
+
+        integration_method : str
+            Integration method used to integrate density on the grid.
+            Currently supported:
+
+            - "trapz" for trapezoid method
+            - "simps" for Simpson method.
+            - "summation" for summation and scaling of the values (recommended)
+
+        Returns
+        -------
+        band energy : float
+            
+        """
+
+        if grid_spacing_bohr is None:
+            grid_spacing_bohr = self.grid_spacing_Bohr
+
+        # Check input data for correctness.
+        data_shape = np.shape(np.squeeze(energy_density_data))
+        if len(data_shape) != 3:
+            if len(data_shape) != 1:
+                raise Exception("Unknown Energy density shape, cannot calculate "
+                                "the Band energy.")
+            elif integration_method != "summation":
+                raise Exception("If using a 1D energy_density array, you can only"
+                                " use summation as integration method.")
+
+        # We integrate along the three axis in space.
+        # If there is only one point in a certain direction we do not
+        # integrate, but rather reduce in this direction.
+        # Integration over one point leads to zero.
+
+        band_energy = None
+        if integration_method != "summation":
+            band_energy = energy_density_data
+
+            # X
+            if data_shape[0] > 1:
+                band_energy = \
+                    integrate_values_on_spacing(band_energy,
+                                                grid_spacing_bohr, axis=0,
+                                                method=integration_method)
+            else:
+                band_energy =\
+                    np.reshape(band_energy, (data_shape[1],
+                                                     data_shape[2]))
+                band_energy *= grid_spacing_bohr
+
+            # Y
+            if data_shape[1] > 1:
+                band_energy = \
+                    integrate_values_on_spacing(band_energy,
+                                                grid_spacing_bohr, axis=0,
+                                                method=integration_method)
+            else:
+                band_energy = \
+                    np.reshape(band_energy, (data_shape[2]))
+                band_energy *= grid_spacing_bohr
+
+            # Z
+            if data_shape[2] > 1:
+                band_energy = \
+                    integrate_values_on_spacing(band_energy,
+                                                grid_spacing_bohr, axis=0,
+                                                method=integration_method)
+            else:
+                band_energy *= grid_spacing_bohr
+        else:
+            if len(data_shape) == 3:
+                band_energy = np.sum(energy_density_data, axis=(0, 1, 2)) \
+                                      * (grid_spacing_bohr ** 3)
+            if len(data_shape) == 1:
+                band_energy = np.sum(energy_density_data, axis=0) * \
+                                      (grid_spacing_bohr ** 3)
+
+        return band_energy'''

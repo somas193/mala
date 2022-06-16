@@ -305,6 +305,44 @@ class LDOS(TargetBase):
 
         return e_total
 
+    def get_energy_density(self, ldos_data, fermi_energy_eV=None,
+                           temperature_K=None,
+                           energy_integration_method="analytical"):
+
+        # Get relevant values from DFT calculation, if not otherwise specified.
+        if fermi_energy_eV is None:
+            fermi_energy_eV = self.fermi_energy_eV
+        if temperature_K is None:
+            temperature_K = self.temperature_K
+        
+        # Check the input.
+        if ldos_data is None:
+            raise Exception("No input data provided to calculate "
+                            "energy density. Provide LDOS data!")
+
+        energy_density = np.zeros((ldos_data.shape[0]*ldos_data.shape[1]*\
+                                   ldos_data.shape[2], 2), dtype=np.float32)
+        dos_calculator = DOS.from_ldos(self)
+        count = 0
+        for i in range(ldos_data.shape[0]):
+            for j in range(ldos_data.shape[1]):
+                for k in range(ldos_data.shape[2]):
+        
+                    energy_density[count, 0] = dos_calculator.\
+                    get_band_energy(ldos_data[i, j, k, :], 
+                                    fermi_energy_eV=fermi_energy_eV,
+                                    temperature_K=temperature_K,
+                                    integration_method=energy_integration_method)
+
+                    energy_density[count, 1] = dos_calculator.\
+                    get_entropy_contribution(ldos_data[i, j, k, :], 
+                                             fermi_energy_eV=fermi_energy_eV,
+                                             temperature_K=temperature_K,
+                                             integration_method=energy_integration_method)
+                    count += 1
+
+        return energy_density
+
     def get_band_energy(self, ldos_data, fermi_energy_eV=None,
                         temperature_K=None, grid_spacing_bohr=None,
                         grid_integration_method="summation",
@@ -361,6 +399,63 @@ class LDOS(TargetBase):
             get_band_energy(dos_data, fermi_energy_eV=fermi_energy_eV,
                             temperature_K=temperature_K,
                             integration_method=energy_integration_method)
+    
+    def get_entropy_contribution(self, ldos_data, fermi_energy_eV=None,
+                                 temperature_K=None, grid_spacing_bohr=None,
+                                 grid_integration_method="summation",
+                                 energy_integration_method="analytical"):
+        """
+        Calculate the entropy contribution from given LDOS data.
+
+        Parameters
+        ----------
+        ldos_data : numpy.array
+            LDOS data, either as [gridsize, energygrid] or
+            [gridx,gridy,gridz,energygrid].
+
+        fermi_energy_eV : float
+            Fermi energy level in eV.
+
+        temperature_K : float
+            Temperature in K.
+
+        grid_integration_method : str
+            Integration method used to integrate the LDOS on the grid.
+            Currently supported:
+
+            - "trapz" for trapezoid method
+            - "simps" for Simpson method.
+            - "summation" for summation and scaling of the values (recommended)
+
+        energy_integration_method : string
+            Integration method to integrate the DOS. Currently supported:
+
+                - "trapz" for trapezoid method
+                - "simps" for Simpson method.
+                - "analytical" for analytical integration. (recommended)
+
+        grid_spacing_bohr : float
+            Grid spacing (distance between grid points) in Bohr.
+
+        Returns
+        -------
+        band_energy : float
+            Band energy in eV.
+        """
+        # The band energy is calculated using the DOS.
+        if grid_spacing_bohr is None:
+            grid_spacing_bohr = self.grid_spacing_Bohr
+        dos_data = self.get_density_of_states(ldos_data, grid_spacing_bohr,
+                                              integration_method=
+                                              grid_integration_method)
+
+        # Once we have the DOS, we can use a DOS object to calculate t
+        # he band energy.
+        dos_calculator = DOS.from_ldos(self)
+        return dos_calculator.\
+            get_entropy_contribution(dos_data, fermi_energy_eV=fermi_energy_eV,
+                                     temperature_K=temperature_K,
+                                     integration_method=energy_integration_method)
 
     def get_number_of_electrons(self, ldos_data, grid_spacing_bohr=None,
                                 fermi_energy_eV=None, temperature_K=None,
