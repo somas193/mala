@@ -85,6 +85,9 @@ class ParametersModel(ParametersBase):
         self.gp_mean = "constant"
         self.kernel = "rbf"
         self.multivariate_distribution = "normal"
+        # For multi-task GP
+        self.no_of_tasks = None 
+        self.rank = None
         # For ApproxGP
         self.variational_dist_type = "cholesky"
         self.variational_strategy_type = "variational_strategy"
@@ -629,7 +632,9 @@ class Parameters:
         self.use_horovod = False
         self.use_gpu = False
         self.manual_seed = None
-        self.use_fast_pred_var = True	#fast predictive variances using LOVE for Gaussian Process
+        #fast predictive variances using LOVE for Gaussian Process
+        self.use_fast_pred_var = True
+        self.use_multitask_gp = False
 
     @property
     def use_gpu(self):
