@@ -36,7 +36,7 @@ ldos = mala.TargetInterface(test_parameters)
 # By doing this, the calculator is able to know e.g. the temperature
 # at which the calculation took place or the lattice constant used.
 ldos.read_additional_calculation_data("qe.out",
-                                      "/home/rofl/MALA/test-data/Be2/densities_gp/additional_info_qeouts/snapshot3.out")
+                                      "/home/rofl/MALA/test-data/Be2/training_data/Be_snapshot3.out")
 
 ldos_data = np.load(data_path)
 print(ldos_data.shape)
@@ -54,7 +54,7 @@ self_consistent_fermi_energy = ldos.\
 #Compute band energy and entropy contribution
 energy_density = ldos.get_energy_density(ldos_data, self_consistent_fermi_energy)
 ed_calculator = mala.targets.EnergyDensity(test_parameters)
-ed_calculator.read_additional_calculation_data('qe.out', "/home/rofl/MALA/test-data/Be2/densities_gp/additional_info_qeouts/snapshot3.out")
+ed_calculator.read_additional_calculation_data('qe.out', "/home/rofl/MALA/test-data/Be2/training_data/Be_snapshot3.out")
 #Band energy and entropy calculation through integration
 band_energy_integrated = ed_calculator.get_integrated_quantities(energy_density[:,0])
 entropy_integrated = ed_calculator.get_integrated_quantities(energy_density[:,1])

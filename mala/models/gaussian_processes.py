@@ -41,7 +41,7 @@ class GaussianProcesses(gpytorch.models.ExactGP):
         if self.params.gp_mean == "constant":
             self.mean_module = gpytorch.means.ConstantMean()
 
-        if self.params.use_multitask_gpu:
+        if params.use_multitask_gp:
             self.mean_module = gpytorch.means.MultitaskMean(self.mean_module, num_tasks=self.params.no_of_tasks)
 
         if self.mean_module is None:
@@ -62,7 +62,7 @@ class GaussianProcesses(gpytorch.models.ExactGP):
         if self.params.kernel == "matern":
             base_covar_module = gpytorch.kernels.MaternKernel()
 
-        if self.params.use_multitask_gp and (self.params.no_of_tasks > 1):
+        if params.use_multitask_gp and (self.params.no_of_tasks > 1):
             base_covar_module = gpytorch.kernels.MultitaskKernel(base_covar_module, num_tasks=self.params.no_of_tasks, rank=self.params.rank)
         else: 
             base_covar_module = gpytorch.kernels.ScaleKernel(base_covar_module)

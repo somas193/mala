@@ -148,8 +148,13 @@ class Runner:
                                             inverse_transform(self.model.likelihood(
                                                 self.model(inputs)).mean.to('cpu'),
                                                 as_numpy=True)
-            predicted_outputs = predicted_outputs.transpose(1, 0)
-            actual_outputs = actual_outputs.transpose(1, 0)
+            
+            if self.parameters_full.use_multitask_gp:
+                predicted_outputs = predicted_outputs.reshape(-1, self.parameters_full.model.no_of_tasks)
+                actual_outputs = actual_outputs.reshape(-1, self.parameters_full.model.no_of_tasks)
+            else:
+                predicted_outputs = predicted_outputs.transpose(1, 0)
+                actual_outputs = actual_outputs.transpose(1, 0)
 
         # Restricting the actual quantities to physical meaningful values,
         # i.e. restricting the (L)DOS to positive values.

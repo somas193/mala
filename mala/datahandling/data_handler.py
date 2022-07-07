@@ -1,4 +1,5 @@
 """DataHandler class that loads and scales data."""
+from mala.common import parameters
 from torch.utils.data import TensorDataset
 
 from .data_scaler import DataScaler
@@ -49,9 +50,9 @@ class DataHandler:
                  output_data_scaler=None):
         self.parameters: ParametersData = parameters.data
         self.dbg_grid_dimensions = parameters.debug.grid_dimensions
+        self.use_multitask_gp = parameters.use_multitask_gp
         self.use_horovod = parameters.use_horovod
         self.training_data_set = None
-
         self.validation_data_set = None
 
         self.test_data_set = None
@@ -89,6 +90,9 @@ class DataHandler:
         self.nr_training_snapshots = 0
         self.nr_test_snapshots = 0
         self.nr_validation_snapshots = 0
+
+        if parameters.targets.target_type == "Energy density":
+            self.parameters.descriptors_contain_xyz = False
 
 
         self.training_data_inputs = torch.empty(0)
@@ -898,13 +902,24 @@ class DataHandler:
         """
         if self.nr_training_data > 0:
             self.training_data_inputs = self.training_data_inputs.transpose(0, 1).reshape(1, self.nr_training_data, self.get_input_dimension())
-            self.training_data_outputs = self.training_data_outputs.transpose(0, 1)
+            if self.use_multitask_gp:
+                self.training_data_outputs = self.training_data_outputs.transpose(0, 1).reshape(1, self.nr_training_data, self.get_output_dimension())
+            else:
+                self.training_data_outputs = self.training_data_outputs.transpose(0, 1)
+            print(self.training_data_inputs.shape)
+            print(self.training_data_outputs.shape)
         if self.nr_validation_data > 0:
             self.validation_data_inputs = self.validation_data_inputs.transpose(0, 1).reshape(1, self.nr_validation_data, self.get_input_dimension())
-            self.validation_data_outputs = self.validation_data_outputs.transpose(0, 1)
+            if self.use_multitask_gp:
+                self.validation_data_outputs = self.validation_data_outputs.transpose(0, 1).reshape(1, self.nr_validation_data, self.get_output_dimension())
+            else:
+                self.validation_data_outputs = self.validation_data_outputs.transpose(0, 1)
         if self.nr_test_data > 0:
             self.test_data_inputs = self.test_data_inputs.transpose(0, 1).reshape(1, self.nr_test_data, self.get_input_dimension())
-            self.test_data_outputs = self.test_data_outputs.transpose(0, 1)
+            if self.use_multitask_gp:
+                self.test_data_outputs = self.test_data_outputs.transpose(0, 1).reshape(1, self.nr_test_data, self.get_output_dimension())
+            else:
+                self.test_data_outputs = self.test_data_outputs.transpose(0, 1)
 
     def get_inducing_points(self, nr_points=500):
         return self.training_data_inputs[torch.randperm(self.training_data_inputs.size(0))[:nr_points]]
