@@ -90,12 +90,13 @@ class Runner:
         predicted_outputs : torch.Tensor
             Precicted outputs for snapshot.
         """
-        if self.data.parameters.use_lazy_loading:
+        if self.data.parameters.use_lazy_loading or \
+           self.parameters_full.data.output_rescaling_type == "None":
             data_set.return_outputs_directly = True
             actual_outputs = \
                 (data_set
                  [snapshot_number * self.data.
-                     grid_size:(snapshot_number + 1) * self.data.grid_size])[1]
+                     grid_size:(snapshot_number + 1) * self.data.grid_size])[1].numpy().astype(np.float64)
         else:
             actual_outputs = \
                 self.data.output_data_scaler.\
@@ -116,36 +117,54 @@ class Runner:
                     data_set[offset+(i * batch_size):offset+((i + 1) * batch_size)]
                 if self.parameters_full.use_gpu:
                     inputs = inputs.to('cuda')
-
-                if self.approx_gaussian_processes_used:
-                    out = self.data.output_data_scaler.\
-                        inverse_transform(self.model(inputs).mean.
-                                        to('cpu'), as_numpy=True)
-                    predicted_outputs[i * batch_size:(i + 1) * batch_size, :] = \
-                        np.reshape(out, (-1, 1))
+                if self.parameters_full.data.output_rescaling_type == "None":
+                    data_set.return_outputs_directly = True
+                    if self.approx_gaussian_processes_used:
+                        out = self.model(inputs).mean.to('cpu').numpy().astype(np.float64)
+                        predicted_outputs[i * batch_size:(i + 1) * batch_size, :] = \
+                            np.reshape(out, (-1, 1))
                         
+                    else:
+                        predicted_outputs[i * batch_size:(i + 1) * batch_size, :] = \
+                            self.model(inputs).to('cpu').numpy().astype(np.float64)
                 else:
-                    predicted_outputs[i * batch_size:(i + 1) * batch_size, :] = \
-                        self.data.output_data_scaler.\
-                        inverse_transform(self.model(inputs).
-                                        to('cpu'), as_numpy=True)
+                    if self.approx_gaussian_processes_used:
+                        out = self.data.output_data_scaler.\
+                            inverse_transform(self.model(inputs).mean.
+                                            to('cpu'), as_numpy=True)
+                        predicted_outputs[i * batch_size:(i + 1) * batch_size, :] = \
+                            np.reshape(out, (-1, 1))
+                        
+                    else:
+                        predicted_outputs[i * batch_size:(i + 1) * batch_size, :] = \
+                            self.data.output_data_scaler.\
+                            inverse_transform(self.model(inputs).
+                                            to('cpu'), as_numpy=True)
         else:
             inputs = \
                     data_set[snapshot_number * self.data.grid_size: (snapshot_number + 1) * self.data.grid_size][0]
             if self.parameters_full.use_gpu:
                 inputs = inputs.to('cuda')
             with torch.no_grad():
-                if self.parameters_full.use_fast_pred_var:
-                    with gpytorch.settings.fast_pred_var():
-                        predicted_outputs = \
-                                            self.data.output_data_scaler.\
-                                            inverse_transform(self.model.likelihood(
-                                                self.model(inputs)).mean.to('cpu'),
-                                                as_numpy=True)
+                if self.parameters_full.data.output_rescaling_type == "None":
+                    data_set.return_outputs_directly = True
+                    if self.parameters_full.use_fast_pred_var:
+                        with gpytorch.settings.fast_pred_var():
+                            predicted_outputs = self.model.likelihood(
+                                                    self.model(inputs)).mean.to('cpu').numpy().astype(np.float64)
+                    else:
+                        predicted_outputs = self.model.likelihood(
+                                                self.model(inputs)).mean.to('cpu').numpy().astype(np.float64)
                 else:
-                    predicted_outputs = \
-                                            self.data.output_data_scaler.\
-                                            inverse_transform(self.model.likelihood(
+                    if self.parameters_full.use_fast_pred_var:
+                        with gpytorch.settings.fast_pred_var():
+                            predicted_outputs = self.data.output_data_scaler.\
+                                                    inverse_transform(self.model.likelihood(
+                                                    self.model(inputs)).mean.to('cpu'),
+                                                    as_numpy=True)
+                    else:
+                        predicted_outputs = self.data.output_data_scaler.\
+                                                inverse_transform(self.model.likelihood(
                                                 self.model(inputs)).mean.to('cpu'),
                                                 as_numpy=True)
             

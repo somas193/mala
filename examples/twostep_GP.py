@@ -80,6 +80,8 @@ printout("Training: DONE.")
 
 tester_gp1 = mala.Tester(params_gp1, model_gp1, data_handler_gp1)
 actual_density, predicted_density = tester_gp1.test_snapshot(0)
+print(type(actual_density))
+print(type(predicted_density))
 
 print("\nActual density: {}, Predicted density: {}".format(actual_density, predicted_density))
 
