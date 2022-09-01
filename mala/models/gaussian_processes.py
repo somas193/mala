@@ -51,6 +51,8 @@ class GaussianProcesses(gpytorch.models.ExactGP):
         self.covar_module = None
         if self.params.kernel == "rbf":
             base_covar_module = gpytorch.kernels.RBFKernel()
+        if self.params.kernel == "rbf-keops":
+            base_covar_module = gpytorch.kernels.keops.RBFKernel()
         if self.params.kernel == "linear":
             base_covar_module = gpytorch.kernels.LinearKernel()
         if self.params.kernel == "rbf+linear":

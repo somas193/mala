@@ -20,7 +20,7 @@ params.data.output_rescaling_type = "normal"
 
 # Specify the used activation function.
 params.model.loss_function_type = "gaussian_likelihood"
-params.model.kernel = "rbf"
+params.model.kernel = "rbf-keops"
 #params.model.kernel = "rbf+linear"
 
 # Specify the training parameters.
@@ -44,10 +44,10 @@ additional_folder = data_path+"additional_info_qeouts/"
 # Add a snapshot we want to use in to the list.
 data_handler.add_snapshot("snapshot0.in.npy", inputs_folder,
                           "snapshot0.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
-# data_handler.add_snapshot("snapshot1.in.npy", inputs_folder,
-#                           "snapshot1.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
-# data_handler.add_snapshot("snapshot2.in.npy", inputs_folder,
-#                           "snapshot2.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
+data_handler.add_snapshot("snapshot1.in.npy", inputs_folder,
+                          "snapshot1.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
+data_handler.add_snapshot("snapshot2.in.npy", inputs_folder,
+                          "snapshot2.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
 data_handler.add_snapshot("snapshot3.in.npy", inputs_folder,
                           "snapshot3.out.npy", outputs_folder, add_snapshot_as="va", output_units="None")
 data_handler.add_snapshot("snapshot4.in.npy", inputs_folder,
@@ -81,7 +81,7 @@ printout("Training: DONE.")
 tester = mala.Tester(params, model, data_handler)
 actual_density, predicted_density = tester.test_snapshot(0)
 # First test snapshot --> 2nd in total
-data_handler.target_calculator.read_additional_calculation_data("qe.out", data_handler.get_snapshot_calculation_output(2))
+data_handler.target_calculator.read_additional_calculation_data("qe.out", data_handler.get_snapshot_calculation_output(4))
 actual_number_of_electrons = data_handler.target_calculator.get_number_of_electrons(actual_density)
 predicted_number_of_electrons = data_handler.target_calculator.get_number_of_electrons(predicted_density)
 printout(f"actual_number_of_electrons: {actual_number_of_electrons}, predicted_number_of_electrons: {predicted_number_of_electrons}")

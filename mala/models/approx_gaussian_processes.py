@@ -19,20 +19,37 @@ class ApproxGaussianProcesses(gpytorch.models.ApproximateGP):
         # Variational distribution.
         variational_distribution = None
         if self.params.variational_dist_type == "cholesky":
-            variational_distribution = gpytorch.variational.CholeskyVariationalDistribution(inducing_points.size(0))
+            if params.use_multitask_gp:
+                variational_distribution = gpytorch.variational.CholeskyVariationalDistribution(inducing_points.size(1), 
+                                           batch_shape=torch.Size([self.params.no_of_latents]))
+            else:
+                variational_distribution = gpytorch.variational.CholeskyVariationalDistribution(inducing_points.size(0))
         if self.params.variational_dist_type == "mean_field":
-            variational_distribution = gpytorch.variational.MeanFieldVariationalDistribution(inducing_points.size(0))
+            if params.use_multitask_gp:
+                variational_distribution = gpytorch.variational.MeanFieldVariationalDistribution(inducing_points.size(1), 
+                                           batch_shape=torch.Size([self.params.no_of_latents]))
+            else:
+                variational_distribution = gpytorch.variational.MeanFieldVariationalDistribution(inducing_points.size(0))
         if self.params.variational_dist_type == "delta":
-            variational_distribution = gpytorch.variational.DeltaVariationalDistribution(inducing_points.size(0))
+            if params.use_multitask_gp:
+                variational_distribution = gpytorch.variational.DeltaVariationalDistribution(inducing_points.size(1), 
+                                           batch_shape=torch.Size([self.params.no_of_latents]))
+            else:
+                variational_distribution = gpytorch.variational.DeltaVariationalDistribution(inducing_points.size(0))
         
         if variational_distribution is None:
             raise Exception("Invalid Variational distribution selected.")
 
         # Variational strategy.
         variational_strat = None
-        if self.params.variational_strategy_type == "variational_strategy":
-            variational_strat = gpytorch.variational.VariationalStrategy(self, inducing_points, variational_distribution, learn_inducing_locations=True)
+        if self.params.variational_strategy_type == "LMC" and (self.params.no_of_tasks > 1):
+            variational_strat = gpytorch.variational.LMCVariationalStrategy(gpytorch.variational.VariationalStrategy(self, 
+                                inducing_points, variational_distribution, learn_inducing_locations=True), num_tasks=self.params.no_of_tasks, 
+                                num_latents=self.params.no_of_latents, latent_dim=-1)
 
+        if self.params.variational_strategy_type == "variational_strategy":
+            variational_strat = gpytorch.variational.VariationalStrategy(self, inducing_points, variational_distribution, 
+                                learn_inducing_locations=True)
         if variational_strat is None:
             raise Exception("Invalid Variational strategy selected.")
 
@@ -42,6 +59,8 @@ class ApproxGaussianProcesses(gpytorch.models.ApproximateGP):
         self.likelihood = None
         if self.params.loss_function_type == "gaussian_likelihood":
             self.likelihood = gpytorch.likelihoods.GaussianLikelihood()
+        if self.params.loss_function_type == "multitask":
+            self.likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=self.params.no_of_tasks)
 
         if self.likelihood is None:
             raise Exception("Invalid Likelihood selected.")
@@ -49,19 +68,34 @@ class ApproxGaussianProcesses(gpytorch.models.ApproximateGP):
         # Mean.
         self.mean_module = None
         if self.params.gp_mean == "constant":
-            self.mean_module = gpytorch.means.ConstantMean()
-
+            if params.use_multitask_gp:
+                self.mean_module = gpytorch.means.ConstantMean(batch_shape=torch.Size([self.params.no_of_latents]))
+            else:
+                self.mean_module = gpytorch.means.ConstantMean()
+        
         if self.mean_module is None:
             raise Exception("Invalid mean module selected.")
 
         # Kernel.
         self.covar_module = None
         if self.params.kernel == "rbf":
-            self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel())
+            if params.use_multitask_gp:
+                self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel(batch_shape=torch.Size([self.params.no_of_latents])), 
+                                    batch_shape=torch.Size([self.params.no_of_latents]))
+            else:    
+                self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel())
         if self.params.kernel == "linear":
-            self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.LinearKernel())
+            if params.use_multitask_gp:
+                self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.LinearKernel(batch_shape=torch.Size([self.params.no_of_latents])), 
+                                    batch_shape=torch.Size([self.params.no_of_latents]))
+            else:    
+                self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.LinearKernel())
         if self.params.kernel == "matern":
-            self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.MaternKernel())
+            if params.use_multitask_gp:
+                self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.MaternKernel(batch_shape=torch.Size([self.params.no_of_latents])), 
+                                    batch_shape=torch.Size([self.params.no_of_latents]))
+            else:    
+                self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.MaternKernel())
 
         if self.covar_module is None:
             raise Exception("Invalid kernel selected.")

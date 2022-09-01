@@ -27,7 +27,7 @@ params.model.max_log_likelihood = "elbo"
 params.model.kernel = "rbf"
 
 # Specify the training parameters.
-params.running.max_number_epochs = 20
+params.running.max_number_epochs = 5
 
 # This should be 1, and MALA will set it automatically to, if we don't.
 params.running.mini_batch_size = 1000
@@ -56,7 +56,7 @@ data_handler.add_snapshot("snapshot2.in.npy", inputs_folder,
 data_handler.prepare_data()
 #print(data_handler.training_data_inputs.size())
 printout("Read data: DONE.")
-inducing_points = data_handler.get_inducing_points(500)
+inducing_points = data_handler.get_inducing_points(10)
 #print(inducing_points)
 
 ####################

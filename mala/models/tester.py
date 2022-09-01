@@ -59,6 +59,14 @@ class Tester(Runner):
                                      self.data.test_data_set,
                                      self.number_of_batches_per_snapshot,
                                      self.parameters.mini_batch_size)
+    
+    def predict_from_array(self, data):
+
+        # Forward through models.
+        return self.\
+            _predict_from_array(data,
+                                self.number_of_batches_per_snapshot,
+                                self.parameters.mini_batch_size)
 
     def __prepare_to_test(self):
         """Prepare the tester class to for test run."""

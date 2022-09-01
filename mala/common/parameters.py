@@ -88,6 +88,8 @@ class ParametersModel(ParametersBase):
         # For multi-task GP
         self.no_of_tasks = None 
         self.rank = None
+        # For variational multi-task GP
+        self.no_of_latents = None 
         # For ApproxGP
         self.variational_dist_type = "cholesky"
         self.variational_strategy_type = "variational_strategy"

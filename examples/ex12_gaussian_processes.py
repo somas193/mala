@@ -12,7 +12,7 @@ parameters (it is the equivalent to ex01 in that regard.)
 """
 
 params = mala.Parameters()
-params.use_gpu = True
+params.use_gpu = False
 params.manual_seed = 14012022
 
 # Specify the data scaling.
@@ -74,8 +74,8 @@ printout("Model Setup: DONE.")
 tester = mala.Tester(params, model, data_handler)
 actual_density, predicted_density = tester.test_snapshot(0)
 
-for dev in range(num_gpus):
-	print(torch.cuda.memory_summary(f'cuda:{dev}')) # print the cuda memory usage
+# for dev in range(num_gpus):
+# 	print(torch.cuda.memory_summary(f'cuda:{dev}')) # print the cuda memory usage
 	
 # First test snapshot --> 2nd in total
 data_handler.target_calculator.read_additional_calculation_data("qe.out", data_handler.get_snapshot_calculation_output(4))

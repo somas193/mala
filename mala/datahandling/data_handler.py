@@ -901,25 +901,50 @@ class DataHandler:
 
         """
         if self.nr_training_data > 0:
+            print(self.training_data_inputs.size())
             self.training_data_inputs = self.training_data_inputs.transpose(0, 1).reshape(1, self.nr_training_data, self.get_input_dimension())
+            print(self.training_data_inputs.size())
             if self.use_multitask_gp:
-                self.training_data_outputs = self.training_data_outputs.transpose(0, 1).reshape(1, self.nr_training_data, self.get_output_dimension())
+                print(self.training_data_outputs.size())
+                self.training_data_outputs = self.training_data_outputs.reshape(1, self.nr_training_data, self.get_output_dimension())
+                print(self.training_data_outputs.size())
             else:
-                self.training_data_outputs = self.training_data_outputs.transpose(0, 1)
-            print(self.training_data_inputs.shape)
-            print(self.training_data_outputs.shape)
+                self.training_data_outputs = self.training_data_outputs.transpose(0, 1)#.reshape(1, self.nr_training_data, self.get_output_dimension())
+            #print(self.training_data_inputs.shape)
+            #print(self.training_data_outputs.shape)
         if self.nr_validation_data > 0:
             self.validation_data_inputs = self.validation_data_inputs.transpose(0, 1).reshape(1, self.nr_validation_data, self.get_input_dimension())
             if self.use_multitask_gp:
-                self.validation_data_outputs = self.validation_data_outputs.transpose(0, 1).reshape(1, self.nr_validation_data, self.get_output_dimension())
+                self.validation_data_outputs = self.validation_data_outputs.reshape(1, self.nr_validation_data, self.get_output_dimension())
             else:
-                self.validation_data_outputs = self.validation_data_outputs.transpose(0, 1)
+                self.validation_data_outputs = self.validation_data_outputs.transpose(0, 1)#.reshape(1, self.nr_validation_data, self.get_output_dimension())
         if self.nr_test_data > 0:
-            self.test_data_inputs = self.test_data_inputs.transpose(0, 1).reshape(1, self.nr_test_data, self.get_input_dimension())
+            print(self.test_data_inputs[0,:])
+            print(self.test_data_inputs.size())
+            self.test_data_inputs = self.test_data_inputs.transpose(0, 1)
+            print(self.test_data_inputs.size())
+            print(self.test_data_inputs[:,0])
+            #print(self.test_data_inputs.size())
+            self.test_data_inputs = self.test_data_inputs.reshape(1, self.nr_test_data, self.get_input_dimension())
+            #print(self.test_data_inputs.size())
+            print(self.test_data_inputs.size())
+            print(self.test_data_inputs[0,0,:])
             if self.use_multitask_gp:
-                self.test_data_outputs = self.test_data_outputs.transpose(0, 1).reshape(1, self.nr_test_data, self.get_output_dimension())
+                print(self.test_data_outputs.size())
+                print(self.test_data_outputs[0,:])
+                # self.test_data_outputs = self.test_data_outputs.transpose(0, 1)
+                # print(self.test_data_outputs.size())
+                # print(self.test_data_outputs[:,0])
+                self.test_data_outputs = self.test_data_outputs.reshape(1, self.nr_test_data, self.get_output_dimension())
+                print(self.test_data_outputs.size())
+                print(self.test_data_outputs[0,0,:])
             else:
-                self.test_data_outputs = self.test_data_outputs.transpose(0, 1)
+                self.test_data_outputs = self.test_data_outputs.transpose(0, 1)#.reshape(1, self.nr_test_data, self.get_output_dimension())
 
-    def get_inducing_points(self, nr_points=500):
-        return self.training_data_inputs[torch.randperm(self.training_data_inputs.size(0))[:nr_points]]
+    def get_inducing_points(self, nr_points=500, no_of_latents=None):
+        if no_of_latents is None:
+            return self.training_data_inputs[torch.randperm(self.training_data_inputs.size(0))[:nr_points]]
+        else:
+            ind_pts = self.training_data_inputs[torch.randperm(self.training_data_inputs.size(0))[:no_of_latents * nr_points]]
+            ind_pts = ind_pts.reshape(no_of_latents, nr_points, -1)
+            return ind_pts

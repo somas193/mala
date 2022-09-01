@@ -11,17 +11,17 @@ params_gp2.use_multitask_gp = True
 
 # Specify the data scaling.
 params_gp2.data.input_rescaling_type = "feature-wise-normal"
-params_gp2.data.output_rescaling_type = "feature-wise-normal"
+params_gp2.data.output_rescaling_type = "normal"
 
 # Specify the used activation function.
 params_gp2.model.loss_function_type = "multitask"
 params_gp2.model.multivariate_distribution = "multitask-normal"
-params_gp2.model.kernel = "rbf"
+params_gp2.model.kernel = "rbf-keops"
 params_gp2.model.no_of_tasks = 2
 params_gp2.model.rank = 1
 
 # Specify the training parameters.
-params_gp2.running.max_number_epochs = 10
+params_gp2.running.max_number_epochs = 1
 
 # This should be 1, and MALA will set it automatically to, if we don't.
 params_gp2.running.mini_batch_size = 1000
@@ -40,15 +40,19 @@ outputs_folder_gp2 = "/home/rofl/MALA_fork/"
 additional_folder = data_path+"additional_info_qeouts/"
 
 # Add a snapshot we want to use in to the list.
-data_handler_gp2.add_snapshot("red_snapshot1.out.npy", outputs_folder_gp2,
-                              "red_Be2_ed_snapshot1.npy", outputs_folder_gp2, add_snapshot_as="tr", output_units="None")
-data_handler_gp2.add_snapshot("red_snapshot2.out.npy", outputs_folder_gp2,
-                              "red_Be2_ed_snapshot2.npy", outputs_folder_gp2, add_snapshot_as="va", output_units="None")
-data_handler_gp2.add_snapshot("red_snapshot3.out.npy", outputs_folder_gp2,
-                              "red_Be2_ed_snapshot3.npy", outputs_folder_gp2, add_snapshot_as="te",
+data_handler_gp2.add_snapshot("snapshot1.out.npy", inputs_folder_gp2,
+                              "Be2_ed_snapshot1.npy", outputs_folder_gp2, add_snapshot_as="tr", output_units="None")
+data_handler_gp2.add_snapshot("snapshot2.out.npy", inputs_folder_gp2,
+                              "Be2_ed_snapshot2.npy", outputs_folder_gp2, add_snapshot_as="va", output_units="None")
+data_handler_gp2.add_snapshot("snapshot3.out.npy", inputs_folder_gp2,
+                              "Be2_ed_snapshot3.npy", outputs_folder_gp2, add_snapshot_as="te",
                                output_units="None", calculation_output_file=additional_folder+"snapshot3.out")
-                            
+in_data = np.load(inputs_folder_gp2 + "snapshot1.out.npy")
+out_data = np.load(outputs_folder_gp2 + "Be2_ed_snapshot1.npy")
+print(in_data.shape)
+print(out_data.shape)                             
 data_handler_gp2.prepare_data(transpose_data=True)
+print(data_handler_gp2.test_data_outputs.size())
 printout("Read data: DONE.")
 
 ####################
