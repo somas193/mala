@@ -21,7 +21,7 @@ params_gp1 = mala.Parameters()
 params_gp1.use_gpu = True
 
 # Specify the data scaling.
-params_gp1.data.input_rescaling_type = "feature-wise-normal"
+params_gp1.data.input_rescaling_type = "feature-wise-standard"
 params_gp1.data.output_rescaling_type = "normal"
 
 # Specify the used activation function.
@@ -33,11 +33,11 @@ params_gp1.model.max_log_likelihood = "elbo"
 params_gp1.model.kernel = "rbf"
 
 # Specify the training parameters.
-params_gp1.running.max_number_epochs = 500
+params_gp1.running.max_number_epochs = 100
 
 # This should be 1, and MALA will set it automatically to, if we don't.
 params_gp1.running.mini_batch_size = 1000
-params_gp1.running.learning_rate = 0.005
+params_gp1.running.learning_rate = 0.01
 params_gp1.running.trainingtype = "Adam"
 params_gp1.targets.target_type = "Density"
 #params_gp1.debug.grid_dimensions = [10, 10, 1]
@@ -48,21 +48,21 @@ params_gp1.targets.target_type = "Density"
 ####################
 
 data_handler_gp1 = mala.DataHandler(params_gp1)
-inputs_folder = data_path+"inputs_snap/"
-outputs_folder = data_path+"outputs_density/"
-additional_folder = data_path+"additional_info_qeouts/"
+inputs_folder_gp1 = "/home/rofl/MALA/test-data/Be2/training_data/"
+outputs_folder_gp1 = data_path+"outputs_density/"
+additional_folder_gp1 = data_path+"additional_info_qeouts/"
 # Add a snapshot we want to use in to the list.
-data_handler_gp1.add_snapshot("snapshot1.in.npy", inputs_folder,
-                              "snapshot1.out.npy", outputs_folder, add_snapshot_as="tr", output_units="None")
-data_handler_gp1.add_snapshot("snapshot2.in.npy", inputs_folder,
-                              "snapshot2.out.npy", outputs_folder, add_snapshot_as="va", output_units="None")
-data_handler_gp1.add_snapshot("snapshot3.in.npy", inputs_folder,
-                              "snapshot3.out.npy", outputs_folder, add_snapshot_as="te",
-                              output_units="None", calculation_output_file=additional_folder+"snapshot3.out")
+data_handler_gp1.add_snapshot("Be_snapshot1.in.npy", inputs_folder_gp1,
+                              "snapshot1.out.npy", outputs_folder_gp1, add_snapshot_as="tr", output_units="None")
+data_handler_gp1.add_snapshot("Be_snapshot2.in.npy", inputs_folder_gp1,
+                              "snapshot2.out.npy", outputs_folder_gp1, add_snapshot_as="va", output_units="None")
+data_handler_gp1.add_snapshot("Be_snapshot3.in.npy", inputs_folder_gp1,
+                              "snapshot3.out.npy", outputs_folder_gp1, add_snapshot_as="te",
+                              output_units="None", calculation_output_file=additional_folder_gp1+"snapshot3.out")
 data_handler_gp1.prepare_data()
 #print(data_handler.training_data_inputs.size())
 printout("Read data: DONE.")
-inducing_points = data_handler_gp1.get_inducing_points(500)
+inducing_points = data_handler_gp1.get_inducing_points(2000)
 #print(inducing_points)
 
 ####################
@@ -97,8 +97,8 @@ actual_number_of_electrons = data_handler_gp1.target_calculator.get_number_of_el
 predicted_number_of_electrons = data_handler_gp1.target_calculator.get_number_of_electrons(predicted_density)
 printout(f"actual_number_of_electrons: {actual_number_of_electrons}, predicted_number_of_electrons: {predicted_number_of_electrons}")
 
-np.save("/media/rofl/New Volume/TU Dresden/THESIS/actual_electronic_density", actual_density)
-np.save("/media/rofl/New Volume/TU Dresden/THESIS/predicted_electronic_density", predicted_density)
+np.save("/media/rofl/New Volume/TU Dresden/THESIS/actual_electronic_density_f", actual_density)
+np.save("/media/rofl/New Volume/TU Dresden/THESIS/predicted_electronic_density_f", predicted_density)
 
 params_gp2 = mala.Parameters()
 params_gp2.use_gpu = True
@@ -106,7 +106,7 @@ params_gp2.use_multitask_gp = True
 
 # Specify the data scaling.
 params_gp2.data.input_rescaling_type = "normal"
-params_gp2.data.output_rescaling_type = "feature-wise-normal"
+params_gp2.data.output_rescaling_type = "feature-wise-standard"
 
 # Specify the used activation function.
 params_gp2.model.variational_dist_type = "cholesky"
@@ -119,11 +119,11 @@ params_gp2.model.no_of_tasks = 2
 params_gp2.model.no_of_latents = 2
 
 # Specify the training parameters.
-params_gp2.running.max_number_epochs = 500
+params_gp2.running.max_number_epochs = 100
 
 # This should be 1, and MALA will set it automatically to, if we don't.
 params_gp2.running.mini_batch_size = 1000
-params_gp2.running.learning_rate = 0.005
+params_gp2.running.learning_rate = 0.01
 params_gp2.running.trainingtype = "Adam"
 params_gp2.targets.target_type = "Energy density"
 
@@ -133,17 +133,17 @@ params_gp2.targets.target_type = "Energy density"
 ####################
 
 data_handler_gp2 = mala.DataHandler(params_gp2)
-inputs_folder_gp = data_path+"outputs_density/"
-outputs_folder_gp = "/home/rofl/MALA_fork/"
+inputs_folder_gp2 = data_path+"outputs_density/"
+outputs_folder_gp2 = "/home/rofl/MALA_fork/"
 additional_folder_gp2 = data_path+"additional_info_qeouts/"
 
 # Add a snapshot we want to use in to the list.
-data_handler_gp2.add_snapshot("snapshot1.out.npy", inputs_folder_gp,
-                              "Be2_ed_snapshot1.npy", outputs_folder_gp, add_snapshot_as="tr", output_units="None")
-data_handler_gp2.add_snapshot("snapshot2.out.npy", inputs_folder_gp,
-                              "Be2_ed_snapshot2.npy", outputs_folder_gp, add_snapshot_as="va", output_units="None")
-data_handler_gp2.add_snapshot("snapshot3.out.npy", inputs_folder_gp,
-                              "Be2_ed_snapshot3.npy", outputs_folder_gp, add_snapshot_as="te",
+data_handler_gp2.add_snapshot("snapshot1.out.npy", inputs_folder_gp2,
+                              "Be2_ed_snapshot1.npy", outputs_folder_gp2, add_snapshot_as="tr", output_units="None")
+data_handler_gp2.add_snapshot("snapshot2.out.npy", inputs_folder_gp2,
+                              "Be2_ed_snapshot2.npy", outputs_folder_gp2, add_snapshot_as="va", output_units="None")
+data_handler_gp2.add_snapshot("snapshot3.out.npy", inputs_folder_gp2,
+                              "Be2_ed_snapshot3.npy", outputs_folder_gp2, add_snapshot_as="te",
                                output_units="None", calculation_output_file=additional_folder_gp2+"snapshot3.out")
 # data_handler_gp.add_snapshot("red_snapshot1.out.npy", outputs_folder_gp,
 #                               "red_Be2_ed_snapshot1.npy", outputs_folder_gp, add_snapshot_as="tr", output_units="None")
@@ -154,7 +154,7 @@ data_handler_gp2.add_snapshot("snapshot3.out.npy", inputs_folder_gp,
 #                                output_units="None", calculation_output_file=additional_folder+"snapshot3.out")                            
 data_handler_gp2.prepare_data()
 printout("Read data: DONE.")
-inducing_points = data_handler_gp2.get_inducing_points(500, params_gp2.model.no_of_latents)
+inducing_points = data_handler_gp2.get_inducing_points(2000, params_gp2.model.no_of_latents)
 #print(inducing_points)
 
 ####################
@@ -207,8 +207,8 @@ integrated_energy = {"actual_be":actual_integrated_be, "actual_ec":actual_integr
                      "predicted_be":predicted_integrated_be, "predicted_ec":predicted_integrated_ec}
 
 
-np.save("/media/rofl/New Volume/TU Dresden/THESIS/actual_energy_density", actual_ed)
-np.save("/media/rofl/New Volume/TU Dresden/THESIS/predicted_energy_density", predicted_ed)
-np.save("/media/rofl/New Volume/TU Dresden/THESIS/predicted_energy_density_simdata", predicted_ed_simdata)
-with open("/media/rofl/New Volume/TU Dresden/THESIS/integrated_energy.pickle", 'wb') as f:
+np.save("/media/rofl/New Volume/TU Dresden/THESIS/actual_energy_density_f", actual_ed)
+np.save("/media/rofl/New Volume/TU Dresden/THESIS/predicted_energy_density_f", predicted_ed)
+np.save("/media/rofl/New Volume/TU Dresden/THESIS/predicted_energy_density_simdata_f", predicted_ed_simdata)
+with open("/media/rofl/New Volume/TU Dresden/THESIS/integrated_energy_f.pickle", 'wb') as f:
     pickle.dump(integrated_energy, f)

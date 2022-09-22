@@ -16,7 +16,7 @@ params_gp2.data.output_rescaling_type = "feature-wise-normal"
 # Specify the used activation function.
 params_gp2.model.loss_function_type = "multitask"
 params_gp2.model.multivariate_distribution = "multitask-normal"
-params_gp2.model.kernel = "rbf"
+params_gp2.model.kernel = "rbf-keops"
 params_gp2.model.no_of_tasks = 2
 params_gp2.model.rank = 1
 
@@ -24,7 +24,7 @@ params_gp2.model.rank = 1
 params_gp2.running.max_number_epochs = 10
 
 # This should be 1, and MALA will set it automatically to, if we don't.
-params_gp2.running.mini_batch_size = 1000
+params_gp2.running.mini_batch_size = 100
 params_gp2.running.learning_rate = 0.1
 params_gp2.running.trainingtype = "Adam"
 params_gp2.targets.target_type = "Energy density"
