@@ -74,8 +74,8 @@ class Runner:
 
         if not self.gaussian_processes_used:
             for i in range(0, number_of_batches_per_snapshot):
-                inputs = \
-                    data_set[(i * batch_size):((i + 1) * batch_size)]
+                inputs = self.data.input_data_scaler.transform(
+                    data_set[(i * batch_size):((i + 1) * batch_size)])
                 if self.parameters_full.use_gpu:
                     inputs = inputs.to('cuda')
                 if self.approx_gaussian_processes_used:
@@ -98,7 +98,7 @@ class Runner:
                         inverse_transform(self.model(inputs).
                                         to('cpu'), as_numpy=True)
         else:
-            inputs = data_set
+            inputs = self.data.input_data_scaler.transform(data_set)
             if self.parameters_full.use_gpu:
                 inputs = inputs.to('cuda')
             with torch.no_grad():

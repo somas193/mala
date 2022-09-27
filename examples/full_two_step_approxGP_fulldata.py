@@ -21,7 +21,7 @@ params_gp1 = mala.Parameters()
 params_gp1.use_gpu = True
 
 # Specify the data scaling.
-params_gp1.data.input_rescaling_type = "feature-wise-standard"
+params_gp1.data.input_rescaling_type = "feature-wise-normal"
 params_gp1.data.output_rescaling_type = "normal"
 
 # Specify the used activation function.
@@ -33,10 +33,10 @@ params_gp1.model.max_log_likelihood = "elbo"
 params_gp1.model.kernel = "rbf"
 
 # Specify the training parameters.
-params_gp1.running.max_number_epochs = 100
+params_gp1.running.max_number_epochs = 50
 
 # This should be 1, and MALA will set it automatically to, if we don't.
-params_gp1.running.mini_batch_size = 1000
+params_gp1.running.mini_batch_size = 2000
 params_gp1.running.learning_rate = 0.01
 params_gp1.running.trainingtype = "Adam"
 params_gp1.targets.target_type = "Density"
@@ -95,6 +95,7 @@ print(f'\nCosine distance between actual and predicted density: {density_similar
 data_handler_gp1.target_calculator.read_additional_calculation_data("qe.out", data_handler_gp1.get_snapshot_calculation_output(2))
 actual_number_of_electrons = data_handler_gp1.target_calculator.get_number_of_electrons(actual_density)
 predicted_number_of_electrons = data_handler_gp1.target_calculator.get_number_of_electrons(predicted_density)
+print("\nActual electronic density: {}, Predicted electronic density: {}".format(actual_density, predicted_density))
 printout(f"actual_number_of_electrons: {actual_number_of_electrons}, predicted_number_of_electrons: {predicted_number_of_electrons}")
 
 np.save("/media/rofl/New Volume/TU Dresden/THESIS/actual_electronic_density_f", actual_density)
@@ -106,7 +107,7 @@ params_gp2.use_multitask_gp = True
 
 # Specify the data scaling.
 params_gp2.data.input_rescaling_type = "normal"
-params_gp2.data.output_rescaling_type = "feature-wise-standard"
+params_gp2.data.output_rescaling_type = "feature-wise-normal"
 
 # Specify the used activation function.
 params_gp2.model.variational_dist_type = "cholesky"
@@ -119,10 +120,10 @@ params_gp2.model.no_of_tasks = 2
 params_gp2.model.no_of_latents = 2
 
 # Specify the training parameters.
-params_gp2.running.max_number_epochs = 100
+params_gp2.running.max_number_epochs = 50
 
 # This should be 1, and MALA will set it automatically to, if we don't.
-params_gp2.running.mini_batch_size = 1000
+params_gp2.running.mini_batch_size = 2000
 params_gp2.running.learning_rate = 0.01
 params_gp2.running.trainingtype = "Adam"
 params_gp2.targets.target_type = "Energy density"

@@ -50,6 +50,7 @@ class DataHandler:
                  output_data_scaler=None):
         self.parameters: ParametersData = parameters.data
         self.dbg_grid_dimensions = parameters.debug.grid_dimensions
+        self.target_type = parameters.targets.target_type
         self.use_multitask_gp = parameters.use_multitask_gp
         self.use_horovod = parameters.use_horovod
         self.training_data_set = None
@@ -91,7 +92,7 @@ class DataHandler:
         self.nr_test_snapshots = 0
         self.nr_validation_snapshots = 0
 
-        if parameters.targets.target_type == "Energy density":
+        if self.target_type == "Energy density":
             self.parameters.descriptors_contain_xyz = False
 
 
@@ -523,11 +524,14 @@ class DataHandler:
     def __load_from_npy_file(self, file, mmapmode=None):
         """Load a numpy array from a file."""
         loaded_array = np.load(file, mmap_mode=mmapmode)
+        #if "_ed_" in file:
+        #    loaded_array = loaded_array * 1000
+        #if ".out.npy" in file:
+        #    loaded_array = loaded_array * 10000
         if len(self.dbg_grid_dimensions) == 3:
             return loaded_array[0:self.dbg_grid_dimensions[0],
                                 0:self.dbg_grid_dimensions[1],
                                 0:self.dbg_grid_dimensions[2], :]
-
         else:
             return loaded_array
 
