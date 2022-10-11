@@ -21,7 +21,7 @@ params_gp1 = mala.Parameters()
 params_gp1.use_gpu = True
 
 # Specify the data scaling.
-params_gp1.data.input_rescaling_type = "feature-wise-normal"
+params_gp1.data.input_rescaling_type = "feature-wise-standard"
 params_gp1.data.output_rescaling_type = "normal"
 
 # Specify the used activation function.
@@ -30,16 +30,17 @@ params_gp1.model.variational_strategy_type = "variational_strategy"
 params_gp1.model.multivariate_distribution = "normal"
 params_gp1.model.loss_function_type = "gaussian_likelihood"
 params_gp1.model.max_log_likelihood = "elbo"
-params_gp1.model.kernel = "rbf"
+params_gp1.model.kernel = "matern"
 
 # Specify the training parameters.
-params_gp1.running.max_number_epochs = 50
+params_gp1.running.max_number_epochs = 20
 
 # This should be 1, and MALA will set it automatically to, if we don't.
-params_gp1.running.mini_batch_size = 2000
-params_gp1.running.learning_rate = 0.01
+params_gp1.running.mini_batch_size = 1000
+params_gp1.running.learning_rate = 0.5
 params_gp1.running.trainingtype = "Adam"
 params_gp1.targets.target_type = "Density"
+params_gp1.data.descriptors_contain_xyz = True
 #params_gp1.debug.grid_dimensions = [10, 10, 1]
 
 ####################
@@ -62,7 +63,7 @@ data_handler_gp1.add_snapshot("Be_snapshot3.in.npy", inputs_folder_gp1,
 data_handler_gp1.prepare_data()
 #print(data_handler.training_data_inputs.size())
 printout("Read data: DONE.")
-inducing_points = data_handler_gp1.get_inducing_points(2000)
+inducing_points = data_handler_gp1.get_inducing_points(1000)
 #print(inducing_points)
 
 ####################
@@ -115,18 +116,19 @@ params_gp2.model.variational_strategy_type = "LMC"
 params_gp2.model.loss_function_type = "multitask"
 params_gp2.model.multivariate_distribution = "normal"
 params_gp2.model.max_log_likelihood = "elbo"
-params_gp2.model.kernel = "rbf"
+params_gp2.model.kernel = "matern"
 params_gp2.model.no_of_tasks = 2
 params_gp2.model.no_of_latents = 2
 
 # Specify the training parameters.
-params_gp2.running.max_number_epochs = 50
+params_gp2.running.max_number_epochs = 100
 
 # This should be 1, and MALA will set it automatically to, if we don't.
-params_gp2.running.mini_batch_size = 2000
-params_gp2.running.learning_rate = 0.01
+params_gp2.running.mini_batch_size = 1000
+params_gp2.running.learning_rate = 0.1
 params_gp2.running.trainingtype = "Adam"
 params_gp2.targets.target_type = "Energy density"
+params_gp2.data.descriptors_contain_xyz = False
 
 ####################
 # DATA
@@ -155,7 +157,7 @@ data_handler_gp2.add_snapshot("snapshot3.out.npy", inputs_folder_gp2,
 #                                output_units="None", calculation_output_file=additional_folder+"snapshot3.out")                            
 data_handler_gp2.prepare_data()
 printout("Read data: DONE.")
-inducing_points = data_handler_gp2.get_inducing_points(2000, params_gp2.model.no_of_latents)
+inducing_points = data_handler_gp2.get_inducing_points(1000, params_gp2.model.no_of_latents)
 #print(inducing_points)
 
 ####################

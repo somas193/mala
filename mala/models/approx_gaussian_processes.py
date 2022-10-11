@@ -72,7 +72,11 @@ class ApproxGaussianProcesses(gpytorch.models.ApproximateGP):
                 self.mean_module = gpytorch.means.ConstantMean(batch_shape=torch.Size([self.params.no_of_latents]))
             else:
                 self.mean_module = gpytorch.means.ConstantMean()
-        
+        if self.params.gp_mean == "linear":
+            if params.use_multitask_gp:
+                self.mean_module = gpytorch.means.LinearMean(batch_shape=torch.Size([self.params.no_of_latents]))
+            else:
+                self.mean_module = gpytorch.means.LinearMean(1)
         if self.mean_module is None:
             raise Exception("Invalid mean module selected.")
 
@@ -92,10 +96,17 @@ class ApproxGaussianProcesses(gpytorch.models.ApproximateGP):
                 self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.LinearKernel())
         if self.params.kernel == "matern":
             if params.use_multitask_gp:
-                self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.MaternKernel(batch_shape=torch.Size([self.params.no_of_latents])), 
+                self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.MaternKernel(nu=1.5, batch_shape=torch.Size([self.params.no_of_latents])), 
                                     batch_shape=torch.Size([self.params.no_of_latents]))
             else:    
-                self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.MaternKernel())
+                self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.MaternKernel(nu=2.5, ard_num_dims=91))
+        if self.params.kernel == "polynomial":
+            if params.use_multitask_gp:
+                self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.PolynomialKernel(power=2, batch_shape=torch.Size([self.params.no_of_latents])), 
+                                    batch_shape=torch.Size([self.params.no_of_latents]))
+            else:    
+                self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.PolynomialKernel(power=3))
+
 
         if self.covar_module is None:
             raise Exception("Invalid kernel selected.")

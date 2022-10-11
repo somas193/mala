@@ -38,8 +38,12 @@ class GaussianProcesses(gpytorch.models.ExactGP):
                                                 likelihood)
         # Mean.
         self.mean_module = None
+        if self.params.gp_mean == "zero":
+            self.mean_module = gpytorch.means.ZeroMean()
         if self.params.gp_mean == "constant":
             self.mean_module = gpytorch.means.ConstantMean()
+        if self.params.gp_mean == "linear":
+            self.mean_module = gpytorch.means.LinearMean(55)
 
         if params.use_multitask_gp:
             self.mean_module = gpytorch.means.MultitaskMean(self.mean_module, num_tasks=self.params.no_of_tasks)
@@ -52,17 +56,29 @@ class GaussianProcesses(gpytorch.models.ExactGP):
         if self.params.kernel == "rbf":
             base_covar_module = gpytorch.kernels.RBFKernel()
         if self.params.kernel == "rbf-keops":
-            base_covar_module = gpytorch.kernels.keops.RBFKernel()
+            base_covar_module = gpytorch.kernels.keops.RBFKernel(ard_num_dims=91)
         if self.params.kernel == "linear":
             base_covar_module = gpytorch.kernels.LinearKernel()
         if self.params.kernel == "rbf+linear":
             base_covar_module = gpytorch.kernels.RBFKernel() + gpytorch.kernels.LinearKernel()
         if self.params.kernel == "polynomial":
-            base_covar_module = gpytorch.kernels.PolynomialKernel(power=2)
+            base_covar_module = gpytorch.kernels.PolynomialKernel(power=2, ard_num_dims=91)
         if self.params.kernel == "cosine":
             base_covar_module = gpytorch.kernels.CosineKernel()
         if self.params.kernel == "matern":
             base_covar_module = gpytorch.kernels.MaternKernel()
+        if self.params.kernel == "matern-keops":
+            base_covar_module = gpytorch.kernels.keops.MaternKernel(nu=2.5, ard_num_dims=55)
+        if self.params.kernel == "matern-keops+linear":
+            base_covar_module = gpytorch.kernels.keops.MaternKernel(nu=1.5, ard_num_dims=91) + \
+                                gpytorch.kernels.LinearKernel(ard_num_dims=91)
+        if self.params.kernel == "periodic":
+            period_constraint = gpytorch.constraints.Interval(85, 115)
+            period_prior = gpytorch.priors.NormalPrior(103, 1)
+            base_covar_module = gpytorch.kernels.PeriodicKernel(period_prior=period_prior, period_length_constraint=period_constraint)
+        if self.params.kernel == "rq":
+            base_covar_module = gpytorch.kernels.RQKernel()
+        
 
         if params.use_multitask_gp and (self.params.no_of_tasks > 1):
             base_covar_module = gpytorch.kernels.MultitaskKernel(base_covar_module, num_tasks=self.params.no_of_tasks, rank=self.params.rank)

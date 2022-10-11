@@ -925,9 +925,9 @@ class DataHandler:
         if self.nr_test_data > 0:
             print(self.test_data_inputs[0,:])
             print(self.test_data_inputs.size())
-            self.test_data_inputs = self.test_data_inputs.transpose(0, 1)
-            print(self.test_data_inputs.size())
-            print(self.test_data_inputs[:,0])
+            #self.test_data_inputs = self.test_data_inputs.transpose(0, 1)
+            #print(self.test_data_inputs.size())
+            #print(self.test_data_inputs[:,0])
             #print(self.test_data_inputs.size())
             self.test_data_inputs = self.test_data_inputs.reshape(1, self.nr_test_data, self.get_input_dimension())
             #print(self.test_data_inputs.size())
@@ -943,8 +943,12 @@ class DataHandler:
                 print(self.test_data_outputs.size())
                 print(self.test_data_outputs[0,0,:])
             else:
+                print(self.test_data_outputs.size())
+                print(self.test_data_outputs[0,:])
                 self.test_data_outputs = self.test_data_outputs.transpose(0, 1)#.reshape(1, self.nr_test_data, self.get_output_dimension())
-
+                print(self.test_data_outputs.size())
+                print(self.test_data_outputs[:,0])
+                
     def get_inducing_points(self, nr_points=500, no_of_latents=None):
         if no_of_latents is None:
             return self.training_data_inputs[torch.randperm(self.training_data_inputs.size(0))[:nr_points]]
