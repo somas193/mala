@@ -63,7 +63,7 @@ printout("Read data: DONE.")
 # to captue the trainint data.
 ####################
 params.model.kernel = "rbf"
-num_gpus = 3
+num_gpus = 1
 model = mala.GaussianProcesses(params, data_handler, num_gpus=num_gpus)
 printout("Model Setup: DONE.")
 ####################

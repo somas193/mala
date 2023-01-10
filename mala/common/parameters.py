@@ -85,6 +85,12 @@ class ParametersModel(ParametersBase):
         self.gp_mean = "constant"
         self.kernel = "rbf"
         self.multivariate_distribution = "normal"
+        # Can be used to set separate lengthscale for each input dimension
+        self.no_of_lengthscales = None
+        # Only for matern kernel
+        self.smoothness_param = 2.5
+        # Only for polynomial kernel
+        self.power = 2
         # For multi-task GP
         self.no_of_tasks = None 
         self.rank = None

@@ -219,6 +219,7 @@ class Runner:
                                                 inverse_transform(self.model.likelihood(
                                                 self.model(inputs)).mean.to('cpu'),
                                                 as_numpy=True)
+                        print(self.model.likelihood(self.model(inputs)).mean.to('cpu'))
                 else:
                     predicted_outputs = self.data.output_data_scaler.\
                                             inverse_transform(self.model.likelihood(

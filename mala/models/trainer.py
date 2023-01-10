@@ -246,6 +246,9 @@ class Trainer(Runner):
                 # model = self.model
                 # printout(model.covar_module.base_kernel.lengthscale.item())
                 printout("Epoch: ", epoch, "validation data loss: ", vloss)
+                if isinstance(self.model, GaussianProcesses):
+                    printout("Lengthscale: ", self.model.covar_module.base_kernel.lengthscale.item(),\
+                             "Noise: ", self.model.likelihood.noise.item())#, "Period length: ", self.model.covar_module.base_kernel.period_length.item())
 
             # Mix the DataSets up (this function only does something
             # in the lazy loading case).

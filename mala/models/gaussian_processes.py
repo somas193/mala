@@ -1,5 +1,7 @@
-import gpytorch
 import torch
+import gpytorch
+#gpytorch.settings.max_cg_iterations(2000)
+#gpytorch.settings.verbose_linalg(True)
 
 from mala import DataHandler
 from mala.common.parameters import ParametersModel
@@ -8,6 +10,8 @@ from mala.common.parameters import ParametersModel
 class GaussianProcesses(gpytorch.models.ExactGP):
     def __init__(self, params, data_handler: DataHandler, num_gpus=1):
         self.params: ParametersModel = params.model
+        self.data = data_handler
+        self.use_gpu = params.use_gpu
 
         # if the user has planted a seed (for comparibility purposes) we
         # should use it.
@@ -19,7 +23,8 @@ class GaussianProcesses(gpytorch.models.ExactGP):
         # Likelihood.
         likelihood = None
         if self.params.loss_function_type == "gaussian_likelihood":
-            likelihood = gpytorch.likelihoods.GaussianLikelihood()
+            noise_constr = gpytorch.constraints.GreaterThan(1e-16)
+            likelihood = gpytorch.likelihoods.GaussianLikelihood(noise_constraint=noise_constr)
         if self.params.loss_function_type == "multitask":
             likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=self.params.no_of_tasks)
 
@@ -54,35 +59,38 @@ class GaussianProcesses(gpytorch.models.ExactGP):
         # Kernel.
         self.covar_module = None
         if self.params.kernel == "rbf":
-            base_covar_module = gpytorch.kernels.RBFKernel()
+            base_covar_module = gpytorch.kernels.RBFKernel(ard_num_dims=self.params.no_of_lengthscales)
         if self.params.kernel == "rbf-keops":
-            base_covar_module = gpytorch.kernels.keops.RBFKernel(ard_num_dims=91)
+            base_covar_module = gpytorch.kernels.keops.RBFKernel(ard_num_dims=self.params.no_of_lengthscales)
         if self.params.kernel == "linear":
-            base_covar_module = gpytorch.kernels.LinearKernel()
+            base_covar_module = gpytorch.kernels.LinearKernel(ard_num_dims=self.params.no_of_lengthscales)
         if self.params.kernel == "rbf+linear":
-            base_covar_module = gpytorch.kernels.RBFKernel() + gpytorch.kernels.LinearKernel()
+            base_covar_module = gpytorch.kernels.RBFKernel(ard_num_dims=self.params.no_of_lengthscales) + \
+                                gpytorch.kernels.LinearKernel(ard_num_dims=self.params.no_of_lengthscales)
         if self.params.kernel == "polynomial":
-            base_covar_module = gpytorch.kernels.PolynomialKernel(power=2, ard_num_dims=91)
+            base_covar_module = gpytorch.kernels.PolynomialKernel(power=2, ard_num_dims=self.params.no_of_lengthscales)
         if self.params.kernel == "cosine":
-            base_covar_module = gpytorch.kernels.CosineKernel()
+            base_covar_module = gpytorch.kernels.CosineKernel(ard_num_dims=self.params.no_of_lengthscales)
         if self.params.kernel == "matern":
-            base_covar_module = gpytorch.kernels.MaternKernel()
+            base_covar_module = gpytorch.kernels.MaternKernel(nu=self.params.smoothness_param, \
+                                ard_num_dims=self.params.no_of_lengthscales)
         if self.params.kernel == "matern-keops":
-            base_covar_module = gpytorch.kernels.keops.MaternKernel(nu=2.5, ard_num_dims=55)
+            base_covar_module = gpytorch.kernels.keops.MaternKernel(nu=self.params.smoothness_param, \
+                                ard_num_dims=self.params.no_of_lengthscales)
         if self.params.kernel == "matern-keops+linear":
-            base_covar_module = gpytorch.kernels.keops.MaternKernel(nu=1.5, ard_num_dims=91) + \
-                                gpytorch.kernels.LinearKernel(ard_num_dims=91)
+            base_covar_module = gpytorch.kernels.keops.MaternKernel(nu=self.params.smoothness_param, \
+                                ard_num_dims=self.params.no_of_lengthscales) + \
+                                gpytorch.kernels.LinearKernel(ard_num_dims=self.params.no_of_lengthscales)
         if self.params.kernel == "periodic":
-            period_constraint = gpytorch.constraints.Interval(85, 115)
-            period_prior = gpytorch.priors.NormalPrior(103, 1)
-            base_covar_module = gpytorch.kernels.PeriodicKernel(period_prior=period_prior, period_length_constraint=period_constraint)
+            base_covar_module = gpytorch.kernels.PeriodicKernel(ard_num_dims=self.params.no_of_lengthscales)
         if self.params.kernel == "rq":
-            base_covar_module = gpytorch.kernels.RQKernel()
+            base_covar_module = gpytorch.kernels.RQKernel(ard_num_dims=self.params.no_of_lengthscales)
         
 
         if params.use_multitask_gp and (self.params.no_of_tasks > 1):
             base_covar_module = gpytorch.kernels.MultitaskKernel(base_covar_module, num_tasks=self.params.no_of_tasks, rank=self.params.rank)
         else: 
+            base_covar_module = base_covar_module
             base_covar_module = gpytorch.kernels.ScaleKernel(base_covar_module)
 
 
@@ -119,6 +127,22 @@ class GaussianProcesses(gpytorch.models.ExactGP):
 
     def calculate_loss(self, output, target):
         return -gpytorch.mlls.ExactMarginalLogLikelihood(self.likelihood, self)(output, target)
+
+    def compute_loss(self, lengthscale, noise):
+
+            self.covar_module.base_kernel.lengthscale = lengthscale
+            self.likelihood.noise_covar.noise = noise
+            mll = gpytorch.mlls.ExactMarginalLogLikelihood(self.likelihood, self)
+            input_data = self.data.training_data_inputs
+            if self.use_gpu:
+                input_data = input_data.to('cuda')
+            output = self(input_data)
+            output_data = self.data.training_data_outputs
+            if self.use_gpu:
+                output_data = output_data.to('cuda')
+            return -mll(output, output_data).item()
+
+
 
     # TODO: implement this.
     def load_from_file(cls, params, path_to_file):
